@@ -164,10 +164,11 @@ export default function ViewOrderPage() {
 
     autoTable(doc, {
       startY: currentY,
-      head: [["#", "Product Name", "Del. Date", "Return Date", "Amount"]],
+      head: [["#", "Product Name", "Size", "Del. Date", "Return Date", "Amount"]],
       body: order.productLocks.map((lock, i) => [
         i + 1,
         lock.product.name,
+        lock.product.size?.join(", ") || "N/A",
         new Date(lock.deliveryDate).toLocaleDateString("en-GB"),
         new Date(lock.returnDate).toLocaleDateString("en-GB"),
         formatCurrency(lock.product.price),
@@ -385,6 +386,7 @@ export default function ViewOrderPage() {
             <tr>
               <th>#</th>
               <th>Product Name</th>
+              <th>Size</th>
               <th>Delivery Date</th>
               <th>Return Date</th>
               <th>Amount</th>
@@ -395,6 +397,7 @@ export default function ViewOrderPage() {
               <tr key={lock.id}>
                 <td>{index + 1}</td>
                 <td>{lock.product.name}</td>
+                <td>{lock.product.size?.join(", ") || "N/A"}</td>
                 <td>{new Date(lock.deliveryDate).toLocaleDateString("en-GB")}</td>
                 <td>{new Date(lock.returnDate).toLocaleDateString("en-GB")}</td>
                 <td>₹{lock.product.price}</td>

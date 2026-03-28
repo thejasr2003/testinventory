@@ -111,6 +111,7 @@ export default function EReceiptPage() {
             <tr>
               <th>#</th>
               <th>Product Name</th>
+              <th>Size</th>
               <th>Del. Date</th>
               <th>Return Date</th>
               <th>Amount</th>
@@ -121,6 +122,7 @@ export default function EReceiptPage() {
               <tr key={lock.id}>
                 <td>{index + 1}</td>
                 <td>{lock.product.name}</td>
+                <td>{lock.product.size?.join(", ") || "N/A"}</td>
                 <td>{new Date(lock.deliveryDate).toLocaleDateString("en-GB")}</td>
                 <td>{new Date(lock.returnDate).toLocaleDateString("en-GB")}</td>
                 <td>Rs.{lock.product.price}</td>
