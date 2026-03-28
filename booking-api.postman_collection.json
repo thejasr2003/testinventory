@@ -1,0 +1,812 @@
+{
+	"info": {
+		"_postman_id": "f0dcd10c-6c72-4c62-be1b-44dca1ce63e7",
+		"name": "inventory-management",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39945321",
+		"_collection_link": "https://speeding-space-282304.postman.co/workspace/My-Workspace~38805c68-82ef-48ec-8d68-eb047c59fd50/collection/39945321-f0dcd10c-6c72-4c62-be1b-44dca1ce63e7?action=share&source=collection_link&creator=39945321"
+	},
+	"item": [
+		{
+			"name": "product",
+			"item": [
+				{
+					"name": "product_updated",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDQ1NzQyOCwiZXhwIjoxNzYwNDYxMDI4fQ.RtxaIpqhrcHdP3_MlOaryCiN-vJ-UPH9hcX6iFWZ1lc; __next_hmr_refresh_hash__=104",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "size",
+									"value": "36,38",
+									"type": "text"
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": "/home/kishorkumar/Downloads/download.jpeg",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "http://172.20.10.4:3000/api/products/pmtest3810",
+							"protocol": "http",
+							"host": [
+								"172",
+								"20",
+								"10",
+								"4"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"products",
+								"pmtest3810"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "product_edit",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MTExMDIwOCwiZXhwIjoxNzYxMTEzODA4fQ.jdhj-NthWyDzElNlEx3hnkFV2l8Ui7hHdn1LUQdKsd0",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://172.20.10.4:3000/api/products/pmmdat8645",
+							"protocol": "http",
+							"host": [
+								"172",
+								"20",
+								"10",
+								"4"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"products",
+								"pmmdat8645"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "organization",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "key",
+								"value": "{{your-api-key}}",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "{{your-api-secret}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://172.20.10.4:3000/api/organization/get-organization-info",
+							"protocol": "http",
+							"host": [
+								"172",
+								"20",
+								"10",
+								"4"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"organization",
+								"get-organization-info"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "list of products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "key",
+								"value": "{{your-api-key}}",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "{{your-api-secret}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v3/parties/{{party_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v3",
+								"parties",
+								"{{party_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete product",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\n{\n  \"name\": \"BLUE\",\n  \"sku\": \"colours\",\n  \"description\": \"Test product\",\n  \"price\": 250,\n  \"images\": [\n    \"https://d1zj63puuxwt59.cloudfront.net/687b44b825e5a8e58023cfd8/78175e2d-36f8-4c9f-a3b5-8d957641d74b.jpg\"\n  ],\n  \"gender\": \"Women\",\n  \"category\": \"Chaniya-Choli\",\n  \"size\": \"M\",\n  \"organizationId\": \"687b44b825e5a8e58023cfd5\"\n}\n\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/products/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"products",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3J2dDc1bjAwMDZqemZqajg0N3I4azYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDU5NTc0NSwiZXhwIjoxNzYwNTk5MzQ1fQ.xN4clRerJXh85cicN1UPNl1wo4pWEr-ILzJbO7mxc_8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "sareehhhhh",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "sku",
+									"value": "jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjhhh",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "price",
+									"value": "800",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "size",
+									"value": "35,36",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "description",
+									"value": "sareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeeesareeeeee",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "gender",
+									"value": "Women",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": "/home/kishorkumar/Downloads/brand.jpeg",
+									"disabled": true
+								},
+								{
+									"key": "category",
+									"value": "gown",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "gender",
+									"value": "Women",
+									"type": "text"
+								},
+								{
+									"key": "category",
+									"value": "Gown",
+									"type": "text"
+								},
+								{
+									"key": "csv",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "http://172.20.10.4:3000/api/products",
+							"protocol": "http",
+							"host": [
+								"172",
+								"20",
+								"10",
+								"4"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"products"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "create-booking",
+			"item": [
+				{
+					"name": "update-booking",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDQ2MTE2NSwiZXhwIjoxNzYwNDY0NzY1fQ.rjVd0m9tAE5hM4h2xTEGNgYRIYcu2vMLLNKsL9r8rqE",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "bookingId",
+									"value": "bkdini2681",
+									"type": "text"
+								},
+								{
+									"key": "products",
+									"value": "[{\"productId\":\"pwa4438\",\"deliveryDate\":\"2025-10-17\",\"returnDate\":\"2025-10-21\"}]",
+									"type": "text"
+								},
+								{
+									"key": "deliverypaymnetMethod",
+									"value": "bank",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/booking/update-booking",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"booking",
+								"update-booking"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "edit-boocking",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MTExMDIwOCwiZXhwIjoxNzYxMTEzODA4fQ.jdhj-NthWyDzElNlEx3hnkFV2l8Ui7hHdn1LUQdKsd0",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/booking/bkdini2681",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"booking",
+								"bkdini2681"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "list bookings/order",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3J2dDc1bjAwMDZqemZqajg0N3I4azYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDU4OTg4NCwiZXhwIjoxNzYwNTkzNDg0fQ.e2PXLvAyve41RNyomXp4K_3Gxe4a_kdlKgV-NCYm2cE",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "{{your-api-secret}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/booking/list-booking/orders",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"booking",
+								"list-booking",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "export",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3J2dDc1bjAwMDZqemZqajg0N3I4azYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDU4OTg4NCwiZXhwIjoxNzYwNTkzNDg0fQ.e2PXLvAyve41RNyomXp4K_3Gxe4a_kdlKgV-NCYm2cE",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/booking/export?from_date=2025-01-01&to_date=2025-12-31",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"booking",
+								"export"
+							],
+							"query": [
+								{
+									"key": "from_date",
+									"value": "2025-01-01"
+								},
+								{
+									"key": "to_date",
+									"value": "2025-12-31"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3J2dDc1bjAwMDZqemZqajg0N3I4azYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDU4OTg4NCwiZXhwIjoxNzYwNTkzNDg0fQ.e2PXLvAyve41RNyomXp4K_3Gxe4a_kdlKgV-NCYm2cE",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/booking/stats?from=2025-10-18&to=2025-10-20",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"booking",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "2025-10-18"
+								},
+								{
+									"key": "to",
+									"value": "2025-10-20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "e-recipt",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3J2dDc1bjAwMDZqemZqajg0N3I4azYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDU4OTg4NCwiZXhwIjoxNzYwNTkzNDg0fQ.e2PXLvAyve41RNyomXp4K_3Gxe4a_kdlKgV-NCYm2cE",
+								"type": "text"
+							},
+							{
+								"key": "secret",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/booking/e-receipt/bkumar5841",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"booking",
+								"e-receipt",
+								"bkumar5841"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "product-lock",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDQ2MTE2NSwiZXhwIjoxNzYwNDY0NzY1fQ.rjVd0m9tAE5hM4h2xTEGNgYRIYcu2vMLLNKsL9r8rqE",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/product-lock/pmduct8536",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"product-lock",
+								"pmduct8536"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "list bookings/return",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDQ2MTE2NSwiZXhwIjoxNzYwNDY0NzY1fQ.rjVd0m9tAE5hM4h2xTEGNgYRIYcu2vMLLNKsL9r8rqE",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/booking/list-booking/return?filter=custom&start=2025-10-25&end=2025-10-25",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"booking",
+								"list-booking",
+								"return"
+							],
+							"query": [
+								{
+									"key": "filter",
+									"value": "custom"
+								},
+								{
+									"key": "start",
+									"value": "2025-10-25"
+								},
+								{
+									"key": "end",
+									"value": "2025-10-25"
+								},
+								{
+									"key": "filter",
+									"value": "today",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "list bookings/delivery",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDQ2MTE2NSwiZXhwIjoxNzYwNDY0NzY1fQ.rjVd0m9tAE5hM4h2xTEGNgYRIYcu2vMLLNKsL9r8rqE",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/booking/list-booking/delivery?filter=today",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"booking",
+								"list-booking",
+								"delivery"
+							],
+							"query": [
+								{
+									"key": "filter",
+									"value": "custom",
+									"disabled": true
+								},
+								{
+									"key": "start",
+									"value": "2025-10-15",
+									"disabled": true
+								},
+								{
+									"key": "end",
+									"value": "2025-10-20",
+									"disabled": true
+								},
+								{
+									"key": "filter",
+									"value": "today"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete booking",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3J2dDc1bjAwMDZqemZqajg0N3I4azYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDU5MTkyMCwiZXhwIjoxNzYwNTk1NTIwfQ.er0ryff18CMaDGdjG-f3cHnzoXnYDQ3dH04M3a4n1x8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\n{\n  \"name\": \"BLUE\",\n  \"sku\": \"colours\",\n  \"description\": \"Test product\",\n  \"price\": 250,\n  \"images\": [\n    \"https://d1zj63puuxwt59.cloudfront.net/687b44b825e5a8e58023cfd8/78175e2d-36f8-4c9f-a3b5-8d957641d74b.jpg\"\n  ],\n  \"gender\": \"Women\",\n  \"category\": \"Chaniya-Choli\",\n  \"size\": \"M\",\n  \"organizationId\": \"687b44b825e5a8e58023cfd5\"\n}\n\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/booking/bkdini1836",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"booking",
+								"bkdini1836"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "product-lock-delete",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3J2dDc1bjAwMDZqemZqajg0N3I4azYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDU5MTkyMCwiZXhwIjoxNzYwNTk1NTIwfQ.er0ryff18CMaDGdjG-f3cHnzoXnYDQ3dH04M3a4n1x8",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/product-lock/pmduct8536",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"product-lock",
+								"pmduct8536"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "product-lock-delete Copy",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3VnaWQ2MTAwMDJlZGR4azE5c3RleXAiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDcwNTQxNSwiZXhwIjoxNzYwNzA5MDE1fQ.vG5X-6EmB35E-SjSZXhSI09loec2qTgqUN8r4qztyRU",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/product-lock/pmdary5393",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"product-lock",
+								"pmdary5393"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create bookings",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "cookie",
+								"value": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZ3Fxdjl5MzAwMDJoZWVheHg1dGozdHYiLCJlbWFpbCI6InByZXdlZGRpbmcuYWRtaW4ub25yZW50QGdtYWlsLmNvbSIsImlhdCI6MTc2MDQ2MTE2NSwiZXhwIjoxNzYwNDY0NzY1fQ.rjVd0m9tAE5hM4h2xTEGNgYRIYcu2vMLLNKsL9r8rqE",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "customerName",
+									"value": "john",
+									"type": "text"
+								},
+								{
+									"key": "phoneNumberPrimary",
+									"value": "9876543210",
+									"type": "text"
+								},
+								{
+									"key": "phoneNumberSecondary",
+									"value": "9123456789",
+									"type": "text"
+								},
+								{
+									"key": "notes",
+									"value": "need ",
+									"type": "text"
+								},
+								{
+									"key": "rentAmount",
+									"value": "200",
+									"type": "text"
+								},
+								{
+									"key": "totalDeposit",
+									"value": "300",
+									"type": "text"
+								},
+								{
+									"key": "returnAmount",
+									"value": "100",
+									"type": "text"
+								},
+								{
+									"key": "advancePayment",
+									"value": "2000",
+									"type": "text"
+								},
+								{
+									"key": "rentalType",
+									"value": "dailly",
+									"type": "text"
+								},
+								{
+									"key": "products",
+									"value": "[{\"productId\":\"cmgqt5f9q0001hde6knpiedz5\",\"deliveryDate\":\"2025-10-15\",\"returnDate\":\"2025-10-20\"}]",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/booking/create-booking",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"booking",
+								"create-booking"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

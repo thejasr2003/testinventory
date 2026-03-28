@@ -1,0 +1,373 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", sans-serif;
+  background-color: #f3f6fa;
+  height: 100%;
+}
+
+.home-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+  width: 100%;
+  justify-content: flex-start;
+  background-color: #FFDEE9, #B5FFFC;
+  min-height: 100vh;
+  padding: 20px 0;
+  box-sizing: border-box;
+}
+
+
+.calendar-toolbar {
+  width: 95%;
+  max-width: 1200px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.toolbar-left {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.create-btn {
+  background-color: #111827;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.create-btn:hover {
+  background-color: #1f2937;
+}
+
+.calendar {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  width: 95%;
+  max-width: 1200px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(90deg, #e6f0ff, #f5f9ff);
+}
+
+.calendar-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+.calendar-header button {
+  background-color: #111827;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.calendar-header button:hover {
+  background-color: #2563eb;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  height: 100%;
+}
+
+th {
+  text-align: center;
+  padding: 10px 0;
+  color: #475569;
+  font-weight: 600;
+  background-color: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 15px;
+}
+
+td {
+  text-align: left;
+  padding: 6px 8px;
+  vertical-align: top;
+  border: 1px solid #f1f5f9;
+  color: #1f2937;
+  font-size: 13px;
+  background-color: #ffffff;
+  width: calc(100% / 7);
+  height: 90px; /* fixed height for all cells */
+  overflow: hidden;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+td.day:hover {
+  background-color: #e0edff;
+  color: #1e3a8a;
+  cursor: pointer;
+}
+
+.empty {
+  background-color: #f9fafb;
+  color: transparent;
+}
+
+td.booked {
+  background-color: #fee2e2 !important;
+  color: #b91c1c !important;
+  font-weight: 600;
+}
+
+td.booked:hover {
+  background-color: #fecaca !important;
+  color: #7f1d1d !important;
+}
+
+/* Date number and product name styles */
+.date-num {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.product-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #020816;
+  margin-top: 4px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* RESPONSIVE STYLES */
+@media (max-width: 1024px) {
+  .calendar-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .toolbar-right {
+    flex-wrap: wrap;
+  }
+
+  .calendar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .calendar-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .calendar-header button {
+    font-size: 14px;
+    padding: 4px 8px;
+  }
+
+  table th {
+    font-size: 13px;
+    padding: 6px 0;
+  }
+
+  table td {
+    font-size: 12px;
+    height: 70px;
+    padding: 4px 6px;
+  }
+
+  .date-num {
+    font-size: 11px;
+  }
+
+  .product-name {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-toolbar {
+    width: 100%;
+  }
+
+  .create-btn {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+  }
+
+  .calendar {
+    width: 100%;
+  }
+
+  table th,
+  table td {
+    font-size: 11px;
+    padding: 3px 4px;
+  }
+
+  td {
+    height: 60px;
+  }
+
+  .date-num {
+    font-size: 10px;
+  }
+
+  .product-name {
+    font-size: 12px;
+  }
+}
+
+/* RESPONSIVE STYLES */
+@media (max-width: 768px) {
+  .calendar-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .calendar-header h2 {
+    font-size: 1rem;
+  }
+
+  .calendar-header button {
+    font-size: 13px;
+    padding: 4px 8px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  th, td {
+    font-size: 11px;
+    padding: 3px 2px;
+    height: 55px;
+    word-wrap: break-word;
+    white-space: normal; 
+  }
+
+  .date-num {
+    font-size: 10px;
+  }
+
+  .product-name {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar {
+    width: 100%;
+    border-radius: 8px;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  th, td {
+    font-size: 10px;
+    padding: 2px;
+    height: 50px;
+  }
+
+  .date-num {
+    font-size: 9px;
+  }
+
+  .product-name {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  th {
+    font-size: 11px;
+    white-space: nowrap;
+    position: relative;
+    color: transparent; 
+  }
+
+  th:nth-child(1)::before { content: "Sun"; color: #475569; }
+  th:nth-child(2)::before { content: "Mon"; color: #475569; }
+  th:nth-child(3)::before { content: "Tue"; color: #475569; }
+  th:nth-child(4)::before { content: "Wed"; color: #475569; }
+  th:nth-child(5)::before { content: "Thu"; color: #475569; }
+  th:nth-child(6)::before { content: "Fri"; color: #475569; }
+  th:nth-child(7)::before { content: "Sat"; color: #475569; }
+
+  table th {
+    padding: 4px 0;
+    font-weight: 600;
+  }
+}
+
+
+.product-filter-box {
+  width: 400px;
+}
+
+@media (max-width: 1024px) {
+  .product-filter-box {
+    width: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-filter-box {
+    width: 100%; 
+  }
+}
+
+@media (max-width: 480px) {
+  .product-filter-box {
+    width: 100%;
+  }
+}
+
+

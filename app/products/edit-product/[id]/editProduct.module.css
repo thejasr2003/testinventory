@@ -1,0 +1,295 @@
+/* Page Wrapper */
+.container {
+  width: 100%;
+  min-height: 100vh;
+  padding: 32px 40px;
+  box-sizing: border-box;
+  background: linear-gradient(120deg, #FFDEE9, #B5FFFC);
+  font-family: "Inter", sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffffaa;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #475569;
+  font-weight: 500;
+  backdrop-filter: blur(6px);
+}
+
+.breadcrumbLink {
+  cursor: pointer;
+  color: #0f172a;
+  transition: 0.2s;
+}
+.breadcrumbLink:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+.breadcrumbDivider {
+  color: #94a3b8;
+}
+.breadcrumbActive {
+  color: #000;
+  font-weight: 600;
+}
+
+/* Form Card */
+.form {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px 40px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Row Layout */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  width: 100%;
+}
+
+.input,
+.select,
+.textarea {
+  flex: 1;
+  min-width: 220px;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 14px;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  background: #fff;
+}
+
+/* Radio */
+.radioGroup {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+/* Two Grid Sections */
+.gridTwo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.gridItem {
+  flex: 1;
+  min-width: 260px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+}
+
+/* Textarea */
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Upload Box */
+.uploadBox {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  text-align: center;
+  padding: 25px;
+  background: #f9fafb;
+  cursor: pointer;
+}
+.uploadText {
+  color: #475569;
+  font-size: 13px;
+}
+
+/* Buttons */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.button {
+  padding: 12px 26px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  border: none;
+  transition: 0.2s;
+  font-size: 14px;
+}
+
+.cancelButton {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+.cancelButton:hover {
+  background: #f1f5f9;
+}
+
+.submitButton {
+  background: #0f172a;
+  color: white;
+}
+.submitButton:hover {
+  background: #2563eb;
+}
+
+/* Loader */
+.loader {
+  width: 22px;     /* ✅ bigger */
+  height: 22px;    /* ✅ bigger */
+  border: 3px solid #fff;
+  border-top: 3px solid transparent; /* ✅ smooth animation */
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.submitButton {
+  background: #0f172a;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px; /* ✅ set fixed height */
+  min-width: 140px; /* ✅ optional to keep button width */
+}
+
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.successMessage {
+  margin-top: 8px;
+  text-align: right;
+  font-weight: 600;
+  font-size: 14px;
+  color: #16a34a;
+}
+
+
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+  .form {
+    padding: 24px;
+  }
+  .row {
+    flex-direction: column;
+  }
+  .actions {
+    justify-content: center;
+  }
+}
+
+.required::after {
+  content: " *";
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.formGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+
+.required::after {
+  content: " *";
+  color: #ff4d4d;
+  font-weight: bold;
+}
+
+.errorText {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+
+.textarea {
+  width: 100%;
+  min-height: 120px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.previewContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: flex-start;
+}
+
+.previewWrapper {
+  position: relative;
+  width: 120px; /* ✅ preview width */
+  height: 140px; /* ✅ preview height */
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* ✅ ensures image is cropped nicely */
+  border-radius: 10px;
+}
+
+/* remove (X) button */
+.removeButton {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+
+
+
+
+

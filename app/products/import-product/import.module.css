@@ -1,0 +1,153 @@
+.importContainer {
+  padding: 32px;
+  background-color: #f9fafb;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+
+.fileName {
+  margin-top: -10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #111827;
+  font-weight: 500;
+  text-align: center;
+}
+
+
+.breadcrumb {
+  margin-bottom: 24px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.importCard {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 500px;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  text-align: center;
+}
+
+.radioGroup {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  margin-bottom: 16px;
+}
+
+.fileDrop {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 32px;
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: pointer;
+  margin-bottom: 24px;
+}
+
+.fileLabel {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #111827;
+}
+
+.disabledLabel {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sampleCSVBtn {
+  padding: 10px 20px;
+  background-color: transparent; 
+  color: #1e40af; 
+  cursor: pointer;
+  font-weight: 500;
+  border: none; 
+  margin-top: 16px;
+}
+
+.sampleCSVBtn:hover {
+  color: #052364;
+  text-decoration: none; 
+  background-color: transparent; 
+}
+
+.discardBtn,
+.importBtn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.discardBtn {
+  background: white;
+  border: 1px solid #d1d5db;
+}
+
+.importBtn {
+  background: black;
+  color: white;
+  border: none;
+}
+
+.importBtn:hover {
+  background: #333;
+}
+
+.discardBtn:hover {
+  background: #f3f4f6;
+}
+
+.disabledBtn {
+  background-color: #d1d5db !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+}
+
+.errorMessage {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.skippedBox {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #92400e;
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.skippedBox ul {
+  margin: 0;
+  padding-left: 18px;
+}

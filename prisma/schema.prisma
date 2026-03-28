@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id               String    @id @default(cuid())
+  organizationName String
+  ownerName        String
+  description      String?
+  isActive         Boolean   @default(true)
+  email            String    @unique
+  contactNumber    String?
+  address          String?
+  logo             String?
+  activeTill       DateTime?
+  billingRules     String[]  @default([])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  users    User[]
+  products Product[]
+  bookings Booking[]
+}
+
+model User {
+  id             String        @id @default(cuid())
+  name           String
+  email          String        @unique
+  password       String
+  isActive       Boolean       @default(true)
+  role           String        @default("user")
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Product {
+  id             String   @id
+  name           String
+  sku            String 
+  description    String?
+  price          Float
+  images         String[]      @default([])
+  isDeleted      Boolean       @default(false)
+  gender         String
+  category       String
+  size           String[]
+  status         String        @default("available")
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt
+  productLocks ProductLock[]
+}
+
+model Booking {
+  id                   String   @id    
+  customerName         String
+  phoneNumberPrimary   String?
+  phoneNumberSecondary String?
+  notes                String?
+  rentAmount           Float
+  totalDeposit         Float
+  additionalCharges    Float         @default(0)
+  returnAmount         Float
+  advancePayment       Float         @default(0)
+  securityDeposit      Float         @default(0)
+  discount             Float         @default(0)
+  discountType         String        @default("flat")
+  rentalType           String
+  invoiceNumber        Int
+  advancePaymentMethod String?
+  deliverypaymnetMethod String?    
+  returnpaymnetMethod   String? 
+  isDeleted            Boolean       @default(false)
+  organizationId       String?
+  organization         Organization? @relation(fields: [organizationId], references: [id])
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @default(now()) @updatedAt
+
+  productLocks ProductLock[]
+}
+
+model ProductLock {
+  id        String   @id @default(cuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  deliveryDate DateTime
+  returnDate   DateTime
+}
+
+model Settings {
+  id       Int    @id @default(autoincrement())
+  key      String @unique
+  value    String
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  parentName  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
