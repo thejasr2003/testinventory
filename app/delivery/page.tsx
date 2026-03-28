@@ -3,7 +3,8 @@ import * as XLSX from "xlsx";
 import { useState, useEffect } from "react";
 import React from "react";
 import DatePicker from "react-datepicker";
-import { Search } from "lucide-react";
+import { Search, Edit } from "lucide-react";
+import { useRouter } from "next/navigation";
 import "react-datepicker/dist/react-datepicker.css";
 import "./Delivery.css";
 
@@ -47,6 +48,7 @@ interface ProductLock {
   productId: string;
   deliveryDate: string;
   returnDate: string;
+  returnStatus: string;
   product: Product;
 }
 
@@ -56,6 +58,7 @@ interface DeliveryRecord extends Booking {
 
 
 export default function DeliveryPage() {
+  const router = useRouter();
   const [filterType, setFilterType] = useState<string>("All");
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
@@ -64,6 +67,7 @@ export default function DeliveryPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  const [updatingProductLockId, setUpdatingProductLockId] = useState<string | null>(null);
 
   // Pagination (client-side, 10 per page to match Orders page)
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -282,6 +286,48 @@ export default function DeliveryPage() {
   const getRentAfterDiscount = (b: DeliveryRecord) =>
     Math.max(0, (b.rentAmount || 0) - (b.discount || 0));
 
+  const handleReturnStatusToggle = async (
+    bookingId: string,
+    productLockId: string,
+    currentStatus: string
+  ) => {
+    setUpdatingProductLockId(productLockId);
+    try {
+      const newStatus = currentStatus === "not_returned" ? "returned" : "not_returned";
+      
+      const formData = new FormData();
+      formData.append("bookingId", bookingId);
+      formData.append("productLockId", productLockId);
+      formData.append("returnStatus", newStatus);
+
+      const res = await fetch("/api/booking/update-booking", {
+        method: "PUT",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        console.error("Failed to update return status");
+        return;
+      }
+
+      setData((prevData) =>
+        prevData.map((booking) =>
+          booking.id === bookingId
+            ? {
+                ...booking,
+                productLocks: booking.productLocks.map((lock) =>
+                  lock.id === productLockId ? { ...lock, returnStatus: newStatus } : lock
+                ),
+              }
+            : booking
+        )
+      );
+    } catch (error) {
+      console.error("Error updating return status:", error);
+    } finally {
+      setUpdatingProductLockId(null);
+    }
+  };
 
   return (
     <div className="orders-container">
@@ -356,6 +402,7 @@ export default function DeliveryPage() {
                 <th>Refund</th>
                 <th>Notes</th>
                 <th>Payment Mode</th>
+                <th>Action</th>
                 <th></th>
               </tr>
             </thead>
@@ -405,6 +452,17 @@ export default function DeliveryPage() {
                           </select>
                         </td>
 
+                        <td className="actions">
+                          <Edit
+                            className="action-icon edit"
+                            size={16}
+                            title="Edit"
+                            onClick={() =>
+                              router.push(`/create-booking/${booking.id}/updatebooking`)
+                            }
+                          />
+                        </td>
+
                         <td
                           className="arrow-cell"
                           onClick={() => toggleRow(booking.id)}
@@ -426,28 +484,60 @@ export default function DeliveryPage() {
                                   <th>Delivery Date</th>
                                   <th>Return Date</th>
                                   <th>Amount</th>
+                                  <th>Status</th>
                                 </tr>
                               </thead>
                               <tbody>
-                                {booking.productLocks.map((lock) => (
-                                  <tr key={lock.id}>
-                                    <td>
-                                      <img
-                                        src={lock.product.images[0] || "/no_image.jpg"}
-                                        alt={lock.product.name}
-                                        className="product-image"
-                                        onError={(e) => {
-                                          (e.target as HTMLImageElement).src = "/no_image.jpg";
-                                        }}
-                                      />
-                                    </td>
-                                    <td>{lock.product.sku}</td>
-                                    <td>{lock.product.name}</td>
-                                    <td>{new Date(lock.deliveryDate).toLocaleDateString()}</td>
-                                    <td>{new Date(lock.returnDate).toLocaleDateString()}</td>
-                                    <td>₹{lock.product.price.toLocaleString()}</td>
-                                  </tr>
-                                ))}
+                                {booking.productLocks.map((lock) => {
+                                  const isReturned = lock.returnStatus === "returned";
+                                  const statusColor = isReturned ? "#28a745" : "#dc3545";
+                                  const statusLabel = isReturned ? "✓ Returned" : "✗ Not Returned";
+
+                                  return (
+                                    <tr key={lock.id}>
+                                      <td>
+                                        <img
+                                          src={lock.product.images[0] || "/no_image.jpg"}
+                                          alt={lock.product.name}
+                                          className="product-image"
+                                          onError={(e) => {
+                                            (e.target as HTMLImageElement).src = "/no_image.jpg";
+                                          }}
+                                        />
+                                      </td>
+                                      <td>{lock.product.sku}</td>
+                                      <td>{lock.product.name}</td>
+                                      <td>{new Date(lock.deliveryDate).toLocaleDateString()}</td>
+                                      <td>{new Date(lock.returnDate).toLocaleDateString()}</td>
+                                      <td>₹{lock.product.price.toLocaleString()}</td>
+                                      <td>
+                                        <button
+                                          onClick={() =>
+                                            handleReturnStatusToggle(
+                                              booking.id,
+                                              lock.id,
+                                              lock.returnStatus
+                                            )
+                                          }
+                                          disabled={updatingProductLockId === lock.id}
+                                          style={{
+                                            backgroundColor: statusColor,
+                                            color: "white",
+                                            border: "none",
+                                            padding: "6px 12px",
+                                            borderRadius: "4px",
+                                            cursor: updatingProductLockId === lock.id ? "not-allowed" : "pointer",
+                                            fontSize: "12px",
+                                            fontWeight: "bold",
+                                            opacity: updatingProductLockId === lock.id ? 0.6 : 1,
+                                          }}
+                                        >
+                                          {statusLabel}
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
                               </tbody>
                             </table>
                           </td>

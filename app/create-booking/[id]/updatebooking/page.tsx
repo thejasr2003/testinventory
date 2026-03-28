@@ -372,6 +372,7 @@ export default function UpdateBooking() {
                 }
                 onChange={(val) => setSelectedBookingType(val?.label || "")}
                 menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                instanceId="booking-type-select"
                 styles={{
                   menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                 }}
@@ -409,7 +410,7 @@ export default function UpdateBooking() {
               <div className="form-row">
                 <div className="form-group" style={{ flex: 2 }}>
                   <label className="required">Product Name</label>
-                  <Select options={getAvailableProducts(card.id)} value={card.product} onChange={(val) => handleChange(card.id, "product", val)} placeholder="Select a product" isSearchable />
+                  <Select options={getAvailableProducts(card.id)} value={card.product} onChange={(val) => handleChange(card.id, "product", val)} placeholder="Select a product" isSearchable instanceId={`product-select-${card.id}`} />
                   {errors[`product_${card.id}`] && <span className="error-text">{errors[`product_${card.id}`]}</span>}
                 </div>
                 <div className="form-group" style={{ flex: 1 }}>
