@@ -20,6 +20,7 @@ interface ProductCard {
   product: ProductOption | null;
   size: string;
   amount: string;
+  discount: string;
   deliveryDate: string;
   returnDate: string;
 }
@@ -28,10 +29,8 @@ export default function CreateBooking() {
   const router = useRouter();
   const [products, setProducts] = useState<ProductOption[]>([]);
   const [productCards, setProductCards] = useState<ProductCard[]>([
-    { id: 1, product: null, size: "", amount: "", deliveryDate: "", returnDate: "" },
+    { id: 1, product: null, size: "", amount: "", discount: "", deliveryDate: "", returnDate: "" },
   ]);
-
-  const [discountValue, setDiscountValue] = useState<number>(0);
   const [securityDeposit, setSecurityDeposit] = useState<number>(0);
   const [advance, setAdvance] = useState<number>(0);
   const [additionalCharges, setAdditionalCharges] = useState<number>(0);
@@ -185,7 +184,7 @@ export default function CreateBooking() {
     }
     setProductCards((prev) => [
       ...prev,
-      { id: Date.now(), product: null, size: "", amount: "", deliveryDate: "", returnDate: "" },
+      { id: Date.now(), product: null, size: "", amount: "", discount: "", deliveryDate: "", returnDate: "" },
     ]);
     setErrorMessage("");
   };
@@ -215,18 +214,19 @@ export default function CreateBooking() {
   }, [sameDate, globalDeliveryDate, globalReturnDate]);
 
   useEffect(() => {
+    const totalDiscounts = productCards.reduce((sum, card) => sum + (parseFloat(card.discount) || 0), 0);
     const totalProductAmount = productCards.reduce((sum, card) => sum + (parseFloat(card.amount) || 0), 0);
-    const discount = discountValue || 0;
     const extras = additionalCharges || 0;
-    const baseRent = Math.max(totalProductAmount, 0);
+    const baseRent = Math.max(totalProductAmount - totalDiscounts, 0);
     const rentWithExtras = baseRent + extras;
     const totalDep = (advance || 0) + (securityDeposit || 0);
-    const retAmt = ((totalDep + discount) - rentWithExtras);
+    const totalDiscount = totalDiscounts || 0;
+    const retAmt = ((totalDep + totalDiscount) - rentWithExtras);
 
     setRentAmount(rentWithExtras);
     setTotalDeposit(totalDep);
     setReturnAmount(retAmt);
-  }, [productCards, discountValue, securityDeposit, advance, additionalCharges]);
+  }, [productCards, securityDeposit, advance, additionalCharges]);
 
   
   const positiveNumber = (val: string) => {
@@ -312,7 +312,8 @@ export default function CreateBooking() {
     formData.append("returnAmount", String(returnAmount));
     formData.append("advancePayment", String(advance));
     formData.append("securityDeposit", String(securityDeposit));
-    formData.append("discount", String(discountValue));
+    const totalProductDiscounts = productCards.reduce((sum, card) => sum + (parseFloat(card.discount) || 0), 0);
+    formData.append("discount", String(totalProductDiscounts));
     formData.append("discountType", "flat");
     formData.append("rentalType", selectedBookingType?.label || "");
 
@@ -383,6 +384,7 @@ export default function CreateBooking() {
                     value={selectedBookingType}
                     onChange={(val) => setSelectedBookingType(val)}
                     menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                    instanceId="booking-type-select"
                     styles={{
                       menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                     }}
@@ -437,7 +439,7 @@ export default function CreateBooking() {
               <div className="form-row">
                 <div className="form-group" style={{ flex: 2 }}>
                   <label className="required">Product Name</label>
-                  <Select options={getAvailableProducts(card.id)} value={card.product} onChange={(val) => handleChange(card.id, "product", val)} placeholder="Select a product" isSearchable />
+                  <Select options={getAvailableProducts(card.id)} value={card.product} onChange={(val) => handleChange(card.id, "product", val)} placeholder="Select a product" isSearchable instanceId={`product-select-${card.id}`} />
                   {errors.product && <span className="error-text">{errors.product}</span>}
                 </div>
                 <div className="form-group" style={{ flex: 1 }}>
@@ -453,7 +455,15 @@ export default function CreateBooking() {
                     }}
                     readOnly
                   />
-
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Discount (₹)</label>
+                  <input 
+                    type="number"
+                    placeholder="Discount"
+                    value={card.discount === "0" || card.discount === "" ? "" : card.discount}
+                    onChange={(e) => handleChange(card.id, "discount", e.target.value)}
+                  />
                 </div>
               </div>
 
@@ -521,12 +531,6 @@ export default function CreateBooking() {
             </div>
 
             <div className="form-group">
-              <label>Discount (₹)</label>
-              <input type="number" placeholder="Discount" value={discountValue === 0 ? "" : discountValue} onChange={(e) => setDiscountValue(Math.max(0, parseFloat(e.target.value) || 0))}
- />
-            </div>
-
-            <div className="form-group">
               <label>(d) Total Product Amount(₹)</label>
               <input
                 type="number"
@@ -545,8 +549,8 @@ export default function CreateBooking() {
 
           <div className="summary-card">
             <div className="summary-row"><span>A. Total Deposit (a+b)</span><span>₹ {totalDeposit.toFixed(2)}</span></div>
-            <div className="summary-row"><span>B. Rent Amount (c+d)</span><span>₹ {rentAmount.toFixed(2)}</span></div>
-            <div className="summary-row discount-row"><span>C. Discount</span><span className="negative">- ₹{(discountValue || 0).toFixed(2)}</span></div>
+            <div className="summary-row"><span>B. Rent Amount (d)</span><span>₹ {rentAmount.toFixed(2)}</span></div>
+            <div className="summary-row discount-row"><span>C. Total Discount</span><span className="negative">- ₹{productCards.reduce((sum, card) => sum + (parseFloat(card.discount) || 0), 0).toFixed(2)}</span></div>
             <div className="summary-row"><span>D. Return Amount(A+C-B)</span><span>₹ {returnAmount.toFixed(2)}</span></div>
           </div>
 

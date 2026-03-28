@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Printer, Copy, Download, MessageCircle } from "lucide-react";
+import { ArrowLeft, Printer, Copy, Download, MessageCircle, Plus } from "lucide-react";
 import "./viewOrder.css";
 
 import { jsPDF } from "jspdf";
@@ -345,6 +345,9 @@ export default function ViewOrderPage() {
           <ArrowLeft size={18} /> Orders
         </button>
         <div className="action-buttons">
+          <button className="create-booking" onClick={() => router.push("/create-booking")}>
+            <Plus size={16} /> Create Booking
+          </button>
           <button className="whatsapp" onClick={handleWhatsappShare}>
             <MessageCircle size={16} /> Share on Whatsapp
           </button>
