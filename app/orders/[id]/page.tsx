@@ -224,9 +224,14 @@ export default function ViewOrderPage() {
     doc.text("(a) Rent Amount:", rightX + 4, boxY + step);
     doc.text(formatCurrency(rentamount), rightX + boxWidth - 4, boxY + step, { align: "right" });
 
-    doc.text("(b) Discount:", rightX + 4, boxY + step * 2);
-    doc.text(`- ${formatCurrency(discount)}`, rightX + boxWidth - 4, boxY + step * 2, { align: "right" });
-    const dividerY_Right = boxY + step * 2 + gapAfterDivider;
+    let discountLineY = boxY + step * 2;
+    if (discount > 0) {
+      doc.text("(b) Discount:", rightX + 4, discountLineY);
+      doc.text(`- ${formatCurrency(discount)}`, rightX + boxWidth - 4, discountLineY, { align: "right" });
+    } else {
+      discountLineY -= step; // Move divider up if no discount
+    }
+    const dividerY_Right = discountLineY + gapAfterDivider;
     doc.line(rightX + 3, dividerY_Right, rightX + boxWidth - 3, dividerY_Right);
     doc.setFont("helvetica", "bold");
     doc.text("(c) Total Rent:", rightX + 4, dividerY_Right + step);
@@ -436,10 +441,12 @@ export default function ViewOrderPage() {
                 <span>(a) Rent Amount:</span>
                 <span>₹{rentamount}</span>
               </div>
-              <div>
-                <span>(b) Discount:</span>
-                <span className="discount">-₹{discount}</span>
-              </div>
+              {discount > 0 && (
+                <div>
+                  <span>(b) Discount:</span>
+                  <span className="discount">-₹{discount}</span>
+                </div>
+              )}
               <div className="total">
                 <span>(c) Total Rent:</span>
                 <span>₹{total}</span>

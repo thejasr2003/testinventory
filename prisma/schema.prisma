@@ -96,6 +96,7 @@ model ProductLock {
   product   Product  @relation(fields: [productId], references: [id])
   deliveryDate DateTime
   returnDate   DateTime
+  discount     Float    @default(0)
   returnStatus String   @default("not_returned")
 }
 

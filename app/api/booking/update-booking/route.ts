@@ -121,6 +121,7 @@ export async function PUT(req: NextRequest) {
             data: {
               deliveryDate: p.deliveryDate ? new Date(p.deliveryDate) : existingLock.deliveryDate,
               returnDate: p.returnDate ? new Date(p.returnDate) : existingLock.returnDate,
+              discount: parseFloat(p.discount || "0"),
             },
           });
         } else {
@@ -130,6 +131,7 @@ export async function PUT(req: NextRequest) {
               productId: p.productId,
               deliveryDate: new Date(p.deliveryDate),
               returnDate: new Date(p.returnDate),
+              discount: parseFloat(p.discount || "0"),
             },
           });
         }

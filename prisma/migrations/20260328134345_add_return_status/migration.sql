@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "ProductLock" ALTER COLUMN "returnStatus" SET DATA TYPE TEXT;
+ALTER TABLE "ProductLock" ADD COLUMN "returnStatus" TEXT DEFAULT 'not_returned';

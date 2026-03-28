@@ -110,19 +110,38 @@ export default function CreateBooking() {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const res = await fetch("/api/products");
-      const data = await res.json();
-      const formatted = data.data.map((p: any) => ({
-        value: p.id,
-        label: `${p.sku || p.id}${p.size?.length ? "-" + p.size.join(",") : ""} : ${p.name}`,
-        price: p.price,
-        image: p.images?.[0] || "",
-        size: p.size?.length ? p.size : [],
-      }));
-      setProducts(formatted);
+      try {
+        const res = await fetch("/api/products");
+        if (!res.ok) {
+          if (res.status === 401) {
+            console.warn("Session expired, redirecting to login");
+            router.push("/sign-in");
+            return;
+          }
+          console.error("Failed to fetch products:", res.statusText);
+          return;
+        }
+        const data = await res.json();
+        
+        if (!data?.data || !Array.isArray(data.data)) {
+          console.error("Invalid products response structure:", data);
+          return;
+        }
+        
+        const formatted = data.data.map((p: any) => ({
+          value: p.id,
+          label: `${p.sku || p.id}${p.size?.length ? "-" + p.size.join(",") : ""} : ${p.name}`,
+          price: p.price,
+          image: p.images?.[0] || "",
+          size: p.size?.length ? p.size : [],
+        }));
+        setProducts(formatted);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      }
     };
     fetchProducts();
-  }, []);
+  }, [router]);
 
   const getAvailableProducts = (currentId: number) => {
     const selectedIds = productCards
@@ -298,6 +317,7 @@ export default function CreateBooking() {
       productId: card.product?.value,
       deliveryDate: sameDate ? globalDeliveryDate : card.deliveryDate,
       returnDate: sameDate ? globalReturnDate : card.returnDate,
+      discount: card.discount || "0",
     }));
 
     const notes = (document.querySelector<HTMLTextAreaElement>('textarea[placeholder="Notes"]')?.value || "").trim();

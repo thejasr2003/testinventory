@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import { useState, useEffect } from "react";
 import React from "react";
 import DatePicker from "react-datepicker";
-import { Search, Edit } from "lucide-react";
+import { Search, Edit, Eye, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import "react-datepicker/dist/react-datepicker.css";
 import "./Delivery.css";
@@ -65,9 +65,8 @@ export default function DeliveryPage() {
   const [search, setSearch] = useState<string>("");
   const [data, setData] = useState<DeliveryRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
-  const [updatingProductLockId, setUpdatingProductLockId] = useState<string | null>(null);
+  const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
 
   // Pagination (client-side, 10 per page to match Orders page)
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -214,39 +213,7 @@ export default function DeliveryPage() {
     }
   };
 
-  const handlePaymentMethodChange = async (
-    bookingId: string,
-    newMethod: "Cash" | "Bank"
-  ) => {
-    setUpdatingBookingId(bookingId);
-    try {
-      const formData = new FormData();
-      formData.append("bookingId", bookingId);
-      formData.append("deliverypaymnetMethod", newMethod);
 
-      const res = await fetch("/api/booking/update-booking", {
-        method: "PUT",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        console.error("Failed to update delivery payment method");
-        return;
-      }
-
-      setData((prevData) =>
-        prevData.map((item) =>
-          item.id === bookingId
-            ? { ...item, deliverypaymnetMethod: newMethod }
-            : item
-        )
-      );
-    } catch (error) {
-      console.error("Error updating delivery payment method:", error);
-    } finally {
-      setUpdatingBookingId(null);
-    }
-  };
   const formatUI = (d?: string) =>
     d ? new Date(d).toLocaleDateString() : "-";
 
@@ -286,46 +253,50 @@ export default function DeliveryPage() {
   const getRentAfterDiscount = (b: DeliveryRecord) =>
     Math.max(0, (b.rentAmount || 0) - (b.discount || 0));
 
-  const handleReturnStatusToggle = async (
-    bookingId: string,
-    productLockId: string,
-    currentStatus: string
-  ) => {
-    setUpdatingProductLockId(productLockId);
+  const handleStatusToggle = async (booking: DeliveryRecord) => {
+    setUpdatingBookingId(booking.id);
     try {
-      const newStatus = currentStatus === "not_returned" ? "returned" : "not_returned";
-      
-      const formData = new FormData();
-      formData.append("bookingId", bookingId);
-      formData.append("productLockId", productLockId);
-      formData.append("returnStatus", newStatus);
+      // Check if all are returned
+      const allReturned = booking.productLocks.every(
+        (lock) => lock.returnStatus === "returned"
+      );
+      // If all returned, mark as not_returned, otherwise mark all as returned
+      const newStatus = allReturned ? "not_returned" : "returned";
 
-      const res = await fetch("/api/booking/update-booking", {
-        method: "PUT",
-        body: formData,
-      });
+      for (const lock of booking.productLocks) {
+        const formData = new FormData();
+        formData.append("bookingId", booking.id);
+        formData.append("productLockId", lock.id);
+        formData.append("returnStatus", newStatus);
 
-      if (!res.ok) {
-        console.error("Failed to update return status");
-        return;
+        const res = await fetch("/api/booking/update-booking", {
+          method: "PUT",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          console.error("Failed to update return status for product", lock.id);
+        }
       }
 
+      // Update local state
       setData((prevData) =>
-        prevData.map((booking) =>
-          booking.id === bookingId
+        prevData.map((b) =>
+          b.id === booking.id
             ? {
-                ...booking,
-                productLocks: booking.productLocks.map((lock) =>
-                  lock.id === productLockId ? { ...lock, returnStatus: newStatus } : lock
-                ),
+                ...b,
+                productLocks: b.productLocks.map((lock) => ({
+                  ...lock,
+                  returnStatus: newStatus,
+                })),
               }
-            : booking
+            : b
         )
       );
     } catch (error) {
       console.error("Error updating return status:", error);
     } finally {
-      setUpdatingProductLockId(null);
+      setUpdatingBookingId(null);
     }
   };
 
@@ -401,9 +372,8 @@ export default function DeliveryPage() {
                 <th>Rent </th>
                 <th>Refund</th>
                 <th>Notes</th>
-                <th>Payment Mode</th>
+                <th>Status</th>
                 <th>Action</th>
-                <th></th>
               </tr>
             </thead>
 
@@ -423,58 +393,96 @@ export default function DeliveryPage() {
 
                   return (
                     <React.Fragment key={booking.id}>
-                      <tr>
-                        <td>{formatUI(getReceivingDate(booking))}</td>
-                        <td>{formatUI(getReturnDate(booking))}</td>
-                        <td>{booking.customerName}</td>
-                        <td>{booking.phoneNumberPrimary}</td>
+                      {(() => {
+                        const allReturned = booking.productLocks.every(
+                          (lock) => lock.returnStatus === "returned"
+                        );
+                        const bgColor = allReturned ? "#28a745" : "transparent";
 
-                        <td>₹{booking.advancePayment.toLocaleString()}</td>
-                        <td>₹{booking.securityDeposit.toLocaleString()}</td>
-                        <td>₹{getRentAfterDiscount(booking).toLocaleString()}</td>
+                        return (
+                          <>
+                            <tr style={{ backgroundColor: bgColor }}>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>{formatUI(getReceivingDate(booking))}</td>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>{formatUI(getReturnDate(booking))}</td>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>{booking.customerName}</td>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>{booking.phoneNumberPrimary}</td>
 
-                        <td>₹{(booking.returnAmount ?? 0).toLocaleString()}</td>
-                        <td>{booking.notes || "-"}</td>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>₹{booking.advancePayment.toLocaleString()}</td>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>₹{booking.securityDeposit.toLocaleString()}</td>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>₹{getRentAfterDiscount(booking).toLocaleString()}</td>
+
+<td style={{ color: allReturned ? "white" : "inherit" }}>₹{(booking.returnAmount ?? 0).toLocaleString()}</td>
+                                <td style={{ color: allReturned ? "white" : "inherit" }}>{booking.notes || "-"}</td>
 
                         <td>
-                          <select
-                            value={booking.deliverypaymnetMethod || "Cash"}
-                            disabled={updatingBookingId === booking.id}
-                            onChange={(e) =>
-                              handlePaymentMethodChange(
-                                booking.id,
-                                e.target.value as "Cash" | "Bank"
-                              )
-                            }
-                          >
-                            <option value="Cash">Cash</option>
-                            <option value="Bank">Bank</option>
-                          </select>
+                          {(() => {
+                            const allReturned = booking.productLocks.every(
+                              (lock) => lock.returnStatus === "returned"
+                            );
+                            const returnedCount = booking.productLocks.filter(
+                              (lock) => lock.returnStatus === "returned"
+                            ).length;
+                            const totalProducts = booking.productLocks.length;
+
+                            return (
+                              <button
+                                onClick={() => handleStatusToggle(booking)}
+                                disabled={updatingBookingId === booking.id}
+                                style={{
+                                  backgroundColor: allReturned ? "#56d373" : "#dc3545",
+                                  color: "white",
+                                  border: "none",
+                                  padding: "8px 16px",
+                                  borderRadius: "4px",
+                                  cursor: updatingBookingId === booking.id ? "not-allowed" : "pointer",
+                                  fontSize: "13px",
+                                  fontWeight: "bold",
+                                  width: "100%",
+                                  textAlign: "center",
+                                  opacity: updatingBookingId === booking.id ? 0.6 : 1,
+                                }}
+                              >
+                                {updatingBookingId === booking.id
+                                  ? "Updating..."
+                                  : allReturned
+                                  ? "✓ All Returned"
+                                  : " Not Returned"}
+                              </button>
+                            );
+                          })()}
                         </td>
 
                         <td className="actions">
+                          <Eye
+                            className="action-icon view"
+                            size={16}
+                            onClick={() => router.push(`/orders/${booking.id}`)}
+                          />
                           <Edit
                             className="action-icon edit"
                             size={16}
-                            title="Edit"
                             onClick={() =>
                               router.push(`/create-booking/${booking.id}/updatebooking`)
                             }
                           />
-                        </td>
-
-                        <td
-                          className="arrow-cell"
-                          onClick={() => toggleRow(booking.id)}
-                          aria-label={isExpanded ? "Collapse" : "Expand"}
-                        >
-                          {isExpanded ? "▲" : "▼"}
+                          <ChevronDown
+                            className="action-icon dropdown"
+                            size={16}
+                            onClick={() => toggleRow(booking.id)}
+                            style={{
+                              transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                              transition: "transform 0.2s ease",
+                            }}
+                          />
                         </td>
                       </tr>
+                          </>
+                        );
+                      })()}
 
                       {isExpanded && (
                         <tr>
-                          <td colSpan={11} style={{ padding: 0 }}>
+                          <td colSpan={10} style={{ padding: 0 }}>
                             <table className="product-details-table">
                               <thead>
                                 <tr>
@@ -484,15 +492,10 @@ export default function DeliveryPage() {
                                   <th>Delivery Date</th>
                                   <th>Return Date</th>
                                   <th>Amount</th>
-                                  <th>Status</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {booking.productLocks.map((lock) => {
-                                  const isReturned = lock.returnStatus === "returned";
-                                  const statusColor = isReturned ? "#28a745" : "#dc3545";
-                                  const statusLabel = isReturned ? "✓ Returned" : "✗ Not Returned";
-
                                   return (
                                     <tr key={lock.id}>
                                       <td>
@@ -510,31 +513,6 @@ export default function DeliveryPage() {
                                       <td>{new Date(lock.deliveryDate).toLocaleDateString()}</td>
                                       <td>{new Date(lock.returnDate).toLocaleDateString()}</td>
                                       <td>₹{lock.product.price.toLocaleString()}</td>
-                                      <td>
-                                        <button
-                                          onClick={() =>
-                                            handleReturnStatusToggle(
-                                              booking.id,
-                                              lock.id,
-                                              lock.returnStatus
-                                            )
-                                          }
-                                          disabled={updatingProductLockId === lock.id}
-                                          style={{
-                                            backgroundColor: statusColor,
-                                            color: "white",
-                                            border: "none",
-                                            padding: "6px 12px",
-                                            borderRadius: "4px",
-                                            cursor: updatingProductLockId === lock.id ? "not-allowed" : "pointer",
-                                            fontSize: "12px",
-                                            fontWeight: "bold",
-                                            opacity: updatingProductLockId === lock.id ? 0.6 : 1,
-                                          }}
-                                        >
-                                          {statusLabel}
-                                        </button>
-                                      </td>
                                     </tr>
                                   );
                                 })}

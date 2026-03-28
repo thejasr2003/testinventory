@@ -166,10 +166,12 @@ export default function EReceiptPage() {
               <span>Rs.{TOTAL}</span>
             </div>
 
-            <div className="row">
-              <span>(b) Discount:</span>
-              <span>- Rs.{order.discount}</span>
-            </div>
+            {order.discount > 0 && (
+              <div className="row">
+                <span>(b) Discount:</span>
+                <span>- Rs.{order.discount}</span>
+              </div>
+            )}
 
             <div className="divider" />
 
