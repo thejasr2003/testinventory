@@ -122,6 +122,7 @@ export async function POST(req: NextRequest) {
             productId: p.productId,
             deliveryDate: new Date(p.deliveryDate),
             returnDate: new Date(p.returnDate),
+            discount: parseFloat(p.discount || "0"),
           })),
         },
       },

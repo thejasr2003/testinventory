@@ -18,6 +18,37 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, message: "Booking not found" }, { status: 404 });
     }
 
+    // Handle return status update for individual product
+    const productLockId = formData.get("productLockId")?.toString();
+    const returnStatus = formData.get("returnStatus")?.toString();
+
+    if (productLockId && returnStatus) {
+      const productLock = await prisma.productLock.findUnique({ where: { id: productLockId } });
+      if (!productLock) {
+        return NextResponse.json({ success: false, message: "Product lock not found" }, { status: 404 });
+      }
+
+      await prisma.productLock.update({
+        where: { id: productLockId },
+        data: { returnStatus },
+      });
+
+      const updatedBooking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: {
+          productLocks: {
+            include: { product: true },
+          },
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: "Return status updated successfully",
+        data: updatedBooking,
+      });
+    }
+
     // Parse all fields
     const customerName = formData.get("customerName")?.toString();
     const phoneNumberPrimary = formData.get("phoneNumberPrimary")?.toString();
@@ -90,6 +121,7 @@ export async function PUT(req: NextRequest) {
             data: {
               deliveryDate: p.deliveryDate ? new Date(p.deliveryDate) : existingLock.deliveryDate,
               returnDate: p.returnDate ? new Date(p.returnDate) : existingLock.returnDate,
+              discount: parseFloat(p.discount || "0"),
             },
           });
         } else {
@@ -99,6 +131,7 @@ export async function PUT(req: NextRequest) {
               productId: p.productId,
               deliveryDate: new Date(p.deliveryDate),
               returnDate: new Date(p.returnDate),
+              discount: parseFloat(p.discount || "0"),
             },
           });
         }

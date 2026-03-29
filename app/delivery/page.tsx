@@ -3,7 +3,8 @@ import * as XLSX from "xlsx";
 import { useState, useEffect } from "react";
 import React from "react";
 import DatePicker from "react-datepicker";
-import { Search } from "lucide-react";
+import { Search, Edit, Eye, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 import "react-datepicker/dist/react-datepicker.css";
 import "./Delivery.css";
 
@@ -47,6 +48,7 @@ interface ProductLock {
   productId: string;
   deliveryDate: string;
   returnDate: string;
+  returnStatus: string;
   product: Product;
 }
 
@@ -56,14 +58,15 @@ interface DeliveryRecord extends Booking {
 
 
 export default function DeliveryPage() {
+  const router = useRouter();
   const [filterType, setFilterType] = useState<string>("All");
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
   const [search, setSearch] = useState<string>("");
   const [data, setData] = useState<DeliveryRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
 
   // Pagination (client-side, 10 per page to match Orders page)
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -210,39 +213,7 @@ export default function DeliveryPage() {
     }
   };
 
-  const handlePaymentMethodChange = async (
-    bookingId: string,
-    newMethod: "Cash" | "Bank"
-  ) => {
-    setUpdatingBookingId(bookingId);
-    try {
-      const formData = new FormData();
-      formData.append("bookingId", bookingId);
-      formData.append("deliverypaymnetMethod", newMethod);
 
-      const res = await fetch("/api/booking/update-booking", {
-        method: "PUT",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        console.error("Failed to update delivery payment method");
-        return;
-      }
-
-      setData((prevData) =>
-        prevData.map((item) =>
-          item.id === bookingId
-            ? { ...item, deliverypaymnetMethod: newMethod }
-            : item
-        )
-      );
-    } catch (error) {
-      console.error("Error updating delivery payment method:", error);
-    } finally {
-      setUpdatingBookingId(null);
-    }
-  };
   const formatUI = (d?: string) =>
     d ? new Date(d).toLocaleDateString() : "-";
 
@@ -282,6 +253,52 @@ export default function DeliveryPage() {
   const getRentAfterDiscount = (b: DeliveryRecord) =>
     Math.max(0, (b.rentAmount || 0) - (b.discount || 0));
 
+  const handleStatusToggle = async (booking: DeliveryRecord) => {
+    setUpdatingBookingId(booking.id);
+    try {
+      // Check if all are returned
+      const allReturned = booking.productLocks.every(
+        (lock) => lock.returnStatus === "returned"
+      );
+      // If all returned, mark as not_returned, otherwise mark all as returned
+      const newStatus = allReturned ? "not_returned" : "returned";
+
+      for (const lock of booking.productLocks) {
+        const formData = new FormData();
+        formData.append("bookingId", booking.id);
+        formData.append("productLockId", lock.id);
+        formData.append("returnStatus", newStatus);
+
+        const res = await fetch("/api/booking/update-booking", {
+          method: "PUT",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          console.error("Failed to update return status for product", lock.id);
+        }
+      }
+
+      // Update local state
+      setData((prevData) =>
+        prevData.map((b) =>
+          b.id === booking.id
+            ? {
+                ...b,
+                productLocks: b.productLocks.map((lock) => ({
+                  ...lock,
+                  returnStatus: newStatus,
+                })),
+              }
+            : b
+        )
+      );
+    } catch (error) {
+      console.error("Error updating return status:", error);
+    } finally {
+      setUpdatingBookingId(null);
+    }
+  };
 
   return (
     <div className="orders-container">
@@ -355,8 +372,8 @@ export default function DeliveryPage() {
                 <th>Rent </th>
                 <th>Refund</th>
                 <th>Notes</th>
-                <th>Payment Mode</th>
-                <th></th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
 
@@ -376,47 +393,96 @@ export default function DeliveryPage() {
 
                   return (
                     <React.Fragment key={booking.id}>
-                      <tr>
-                        <td>{formatUI(getReceivingDate(booking))}</td>
-                        <td>{formatUI(getReturnDate(booking))}</td>
-                        <td>{booking.customerName}</td>
-                        <td>{booking.phoneNumberPrimary}</td>
+                      {(() => {
+                        const allReturned = booking.productLocks.every(
+                          (lock) => lock.returnStatus === "returned"
+                        );
+                        const bgColor = allReturned ? "#28a745" : "transparent";
 
-                        <td>₹{booking.advancePayment.toLocaleString()}</td>
-                        <td>₹{booking.securityDeposit.toLocaleString()}</td>
-                        <td>₹{getRentAfterDiscount(booking).toLocaleString()}</td>
+                        return (
+                          <>
+                            <tr style={{ backgroundColor: bgColor }}>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>{formatUI(getReceivingDate(booking))}</td>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>{formatUI(getReturnDate(booking))}</td>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>{booking.customerName}</td>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>{booking.phoneNumberPrimary}</td>
 
-                        <td>₹{(booking.returnAmount ?? 0).toLocaleString()}</td>
-                        <td>{booking.notes || "-"}</td>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>₹{booking.advancePayment.toLocaleString()}</td>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>₹{booking.securityDeposit.toLocaleString()}</td>
+                              <td style={{ color: allReturned ? "white" : "inherit" }}>₹{getRentAfterDiscount(booking).toLocaleString()}</td>
+
+<td style={{ color: allReturned ? "white" : "inherit" }}>₹{(booking.returnAmount ?? 0).toLocaleString()}</td>
+                                <td style={{ color: allReturned ? "white" : "inherit" }}>{booking.notes || "-"}</td>
 
                         <td>
-                          <select
-                            value={booking.deliverypaymnetMethod || "Cash"}
-                            disabled={updatingBookingId === booking.id}
-                            onChange={(e) =>
-                              handlePaymentMethodChange(
-                                booking.id,
-                                e.target.value as "Cash" | "Bank"
-                              )
-                            }
-                          >
-                            <option value="Cash">Cash</option>
-                            <option value="Bank">Bank</option>
-                          </select>
+                          {(() => {
+                            const allReturned = booking.productLocks.every(
+                              (lock) => lock.returnStatus === "returned"
+                            );
+                            const returnedCount = booking.productLocks.filter(
+                              (lock) => lock.returnStatus === "returned"
+                            ).length;
+                            const totalProducts = booking.productLocks.length;
+
+                            return (
+                              <button
+                                onClick={() => handleStatusToggle(booking)}
+                                disabled={updatingBookingId === booking.id}
+                                style={{
+                                  backgroundColor: allReturned ? "#56d373" : "#dc3545",
+                                  color: "white",
+                                  border: "none",
+                                  padding: "8px 16px",
+                                  borderRadius: "4px",
+                                  cursor: updatingBookingId === booking.id ? "not-allowed" : "pointer",
+                                  fontSize: "13px",
+                                  fontWeight: "bold",
+                                  width: "100%",
+                                  textAlign: "center",
+                                  opacity: updatingBookingId === booking.id ? 0.6 : 1,
+                                }}
+                              >
+                                {updatingBookingId === booking.id
+                                  ? "Updating..."
+                                  : allReturned
+                                  ? "✓ All Returned"
+                                  : " Not Returned"}
+                              </button>
+                            );
+                          })()}
                         </td>
 
-                        <td
-                          className="arrow-cell"
-                          onClick={() => toggleRow(booking.id)}
-                          aria-label={isExpanded ? "Collapse" : "Expand"}
-                        >
-                          {isExpanded ? "▲" : "▼"}
+                        <td className="actions">
+                          <Eye
+                            className="action-icon view"
+                            size={16}
+                            onClick={() => router.push(`/orders/${booking.id}`)}
+                          />
+                          <Edit
+                            className="action-icon edit"
+                            size={16}
+                            onClick={() =>
+                              router.push(`/create-booking/${booking.id}/updatebooking`)
+                            }
+                          />
+                          <ChevronDown
+                            className="action-icon dropdown"
+                            size={16}
+                            onClick={() => toggleRow(booking.id)}
+                            style={{
+                              transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                              transition: "transform 0.2s ease",
+                            }}
+                          />
                         </td>
                       </tr>
+                          </>
+                        );
+                      })()}
 
                       {isExpanded && (
                         <tr>
-                          <td colSpan={11} style={{ padding: 0 }}>
+                          <td colSpan={10} style={{ padding: 0 }}>
                             <table className="product-details-table">
                               <thead>
                                 <tr>
@@ -429,25 +495,27 @@ export default function DeliveryPage() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {booking.productLocks.map((lock) => (
-                                  <tr key={lock.id}>
-                                    <td>
-                                      <img
-                                        src={lock.product.images[0] || "/no_image.jpg"}
-                                        alt={lock.product.name}
-                                        className="product-image"
-                                        onError={(e) => {
-                                          (e.target as HTMLImageElement).src = "/no_image.jpg";
-                                        }}
-                                      />
-                                    </td>
-                                    <td>{lock.product.sku}</td>
-                                    <td>{lock.product.name}</td>
-                                    <td>{new Date(lock.deliveryDate).toLocaleDateString()}</td>
-                                    <td>{new Date(lock.returnDate).toLocaleDateString()}</td>
-                                    <td>₹{lock.product.price.toLocaleString()}</td>
-                                  </tr>
-                                ))}
+                                {booking.productLocks.map((lock) => {
+                                  return (
+                                    <tr key={lock.id}>
+                                      <td>
+                                        <img
+                                          src={lock.product.images[0] || "/no_image.jpg"}
+                                          alt={lock.product.name}
+                                          className="product-image"
+                                          onError={(e) => {
+                                            (e.target as HTMLImageElement).src = "/no_image.jpg";
+                                          }}
+                                        />
+                                      </td>
+                                      <td>{lock.product.sku}</td>
+                                      <td>{lock.product.name}</td>
+                                      <td>{new Date(lock.deliveryDate).toLocaleDateString()}</td>
+                                      <td>{new Date(lock.returnDate).toLocaleDateString()}</td>
+                                      <td>₹{lock.product.price.toLocaleString()}</td>
+                                    </tr>
+                                  );
+                                })}
                               </tbody>
                             </table>
                           </td>

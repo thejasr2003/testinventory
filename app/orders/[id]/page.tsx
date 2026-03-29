@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Printer, Copy, Download, MessageCircle } from "lucide-react";
+import { ArrowLeft, Printer, Copy, Download, MessageCircle, Plus } from "lucide-react";
 import "./viewOrder.css";
 
 import { jsPDF } from "jspdf";
@@ -164,10 +164,11 @@ export default function ViewOrderPage() {
 
     autoTable(doc, {
       startY: currentY,
-      head: [["#", "Product Name", "Del. Date", "Return Date", "Amount"]],
+      head: [["#", "Product Name", "Size", "Del. Date", "Return Date", "Amount"]],
       body: order.productLocks.map((lock, i) => [
         i + 1,
         lock.product.name,
+        lock.product.size?.join(", ") || "N/A",
         new Date(lock.deliveryDate).toLocaleDateString("en-GB"),
         new Date(lock.returnDate).toLocaleDateString("en-GB"),
         formatCurrency(lock.product.price),
@@ -223,9 +224,14 @@ export default function ViewOrderPage() {
     doc.text("(a) Rent Amount:", rightX + 4, boxY + step);
     doc.text(formatCurrency(rentamount), rightX + boxWidth - 4, boxY + step, { align: "right" });
 
-    doc.text("(b) Discount:", rightX + 4, boxY + step * 2);
-    doc.text(`- ${formatCurrency(discount)}`, rightX + boxWidth - 4, boxY + step * 2, { align: "right" });
-    const dividerY_Right = boxY + step * 2 + gapAfterDivider;
+    let discountLineY = boxY + step * 2;
+    if (discount > 0) {
+      doc.text("(b) Discount:", rightX + 4, discountLineY);
+      doc.text(`- ${formatCurrency(discount)}`, rightX + boxWidth - 4, discountLineY, { align: "right" });
+    } else {
+      discountLineY -= step; // Move divider up if no discount
+    }
+    const dividerY_Right = discountLineY + gapAfterDivider;
     doc.line(rightX + 3, dividerY_Right, rightX + boxWidth - 3, dividerY_Right);
     doc.setFont("helvetica", "bold");
     doc.text("(c) Total Rent:", rightX + 4, dividerY_Right + step);
@@ -345,6 +351,9 @@ export default function ViewOrderPage() {
           <ArrowLeft size={18} /> Orders
         </button>
         <div className="action-buttons">
+          <button className="create-booking" onClick={() => router.push("/create-booking")}>
+            <Plus size={16} /> Create Booking
+          </button>
           <button className="whatsapp" onClick={handleWhatsappShare}>
             <MessageCircle size={16} /> Share on Whatsapp
           </button>
@@ -382,6 +391,7 @@ export default function ViewOrderPage() {
             <tr>
               <th>#</th>
               <th>Product Name</th>
+              <th>Size</th>
               <th>Delivery Date</th>
               <th>Return Date</th>
               <th>Amount</th>
@@ -392,6 +402,7 @@ export default function ViewOrderPage() {
               <tr key={lock.id}>
                 <td>{index + 1}</td>
                 <td>{lock.product.name}</td>
+                <td>{lock.product.size?.join(", ") || "N/A"}</td>
                 <td>{new Date(lock.deliveryDate).toLocaleDateString("en-GB")}</td>
                 <td>{new Date(lock.returnDate).toLocaleDateString("en-GB")}</td>
                 <td>₹{lock.product.price}</td>
@@ -430,10 +441,12 @@ export default function ViewOrderPage() {
                 <span>(a) Rent Amount:</span>
                 <span>₹{rentamount}</span>
               </div>
-              <div>
-                <span>(b) Discount:</span>
-                <span className="discount">-₹{discount}</span>
-              </div>
+              {discount > 0 && (
+                <div>
+                  <span>(b) Discount:</span>
+                  <span className="discount">-₹{discount}</span>
+                </div>
+              )}
               <div className="total">
                 <span>(c) Total Rent:</span>
                 <span>₹{total}</span>

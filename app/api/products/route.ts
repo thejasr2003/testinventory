@@ -22,7 +22,15 @@ function generateProductId(name: string, gender: string) {
 
 
 export async function GET(req: Request) {
-  await validate();
+  try {
+    await validate();
+  } catch (error: any) {
+    console.error("Validation error:", error?.message || error);
+    return NextResponse.json(
+      { success: false, error: "Unauthorized - Please login again" },
+      { status: 401 }
+    );
+  }
 
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status"); 
@@ -41,8 +49,9 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ data: products }, { status: 200 });
   } catch (error: any) {
+    console.error("Error fetching products:", error?.message || error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: error?.message || "Server error" },
       { status: 500 }
     );
   }
