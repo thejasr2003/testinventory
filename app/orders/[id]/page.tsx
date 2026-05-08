@@ -89,7 +89,7 @@ export default function ViewOrderPage() {
   const rentamount = productAmount + additionalCharges;
   const total = rentamount - discount
   const remainingPayment = total - order.advancePayment;
-  const returnAmount = (securityDeposit + (order.advancePayment)) - total;
+  const returnAmount = Math.max(0, (securityDeposit + (order.advancePayment)) - total);
 
   const generatePDF = () => {
   const doc = new jsPDF();

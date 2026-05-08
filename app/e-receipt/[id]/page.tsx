@@ -60,7 +60,7 @@ export default function EReceiptPage() {
   const TOTAL = productAmount + (order.additionalCharges || 0) 
 
   const remainingPayment = order.advancePayment + order.securityDeposit;
-  const returnAmount = (remainingPayment - (TOTAL - order.discount));
+  const returnAmount = Math.max(0, remainingPayment - (TOTAL - order.discount));
 
   return (
     <div className="invoice-wrapper">

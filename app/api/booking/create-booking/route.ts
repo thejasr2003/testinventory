@@ -123,6 +123,7 @@ export async function POST(req: NextRequest) {
             deliveryDate: new Date(p.deliveryDate),
             returnDate: new Date(p.returnDate),
             discount: parseFloat(p.discount || "0"),
+            returnStatus: "yet_to_deliver",
           })),
         },
       },

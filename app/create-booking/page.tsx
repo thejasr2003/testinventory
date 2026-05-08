@@ -240,7 +240,7 @@ export default function CreateBooking() {
     const rentWithExtras = baseRent + extras;
     const totalDep = (advance || 0) + (securityDeposit || 0);
     const totalDiscount = totalDiscounts || 0;
-    const retAmt = ((totalDep + totalDiscount) - rentWithExtras);
+    const retAmt = Math.max(0, (totalDep + totalDiscount) - rentWithExtras);
 
     setRentAmount(rentWithExtras);
     setTotalDeposit(totalDep);

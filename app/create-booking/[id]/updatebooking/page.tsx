@@ -283,7 +283,7 @@ export default function UpdateBooking() {
     const baseRent = Math.max(totalProductAmount, 0);
     const rentWithExtras = baseRent + extras;
     const totalDep = (advance || 0) + (securityDeposit || 0);
-    const retAmt = ((totalDep + totalProductDiscount) - rentWithExtras);
+    const retAmt = Math.max(0, (totalDep + totalProductDiscount) - rentWithExtras);
 
     setRentAmount(rentWithExtras);
     setTotalDeposit(totalDep);

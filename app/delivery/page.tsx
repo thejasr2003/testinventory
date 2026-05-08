@@ -225,20 +225,24 @@ export default function DeliveryPage() {
   const exportExcel = () => {
     if (!filteredData.length) return;
 
-    const rows = filteredData.map((b) => ({
-      "Receiving Date": formatUI(getReceivingDate(b)),
-      "Return Date": formatUI(getReturnDate(b)),
-      "Customer Name": b.customerName,
-      "Mobile No.": b.phoneNumberPrimary,
-      "Advance Payment": b.advancePayment,
-      "Security Deposit": b.securityDeposit,
-      "Rent": (b.rentAmount || 0) - (b.discount || 0),
+    const rows = filteredData.map((b) => {
+      const productAmount = b.productLocks.reduce((sum, lock) => sum + (lock.product?.price || 0), 0);
+      const additionalCharges = b.additionalCharges || 0;
+      const discount = b.discount || 0;
+      const rent = Math.max(0, productAmount + additionalCharges - discount);
 
-      "Refund": b.returnAmount ?? 0,
-      "Notes": b.notes || "-",
-
-
-    }));
+      return {
+        "Receiving Date": formatUI(getReceivingDate(b)),
+        "Return Date": formatUI(getReturnDate(b)),
+        "Customer Name": b.customerName,
+        "Mobile No.": b.phoneNumberPrimary,
+        "Advance Payment": b.advancePayment,
+        "Security Deposit": b.securityDeposit,
+        "Rent": rent,
+        "Refund": b.returnAmount ?? 0,
+        "Notes": b.notes || "-",
+      };
+    });
 
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
@@ -250,18 +254,44 @@ export default function DeliveryPage() {
       `delivery_export_${new Date().toISOString().slice(0, 10)}.xlsx`
     );
   };
-  const getRentAfterDiscount = (b: DeliveryRecord) =>
-    Math.max(0, (b.rentAmount || 0) - (b.discount || 0));
+  const getRentAfterDiscount = (b: DeliveryRecord) => {
+    const productAmount = b.productLocks.reduce((sum, lock) => sum + (lock.product?.price || 0), 0);
+    const additionalCharges = b.additionalCharges || 0;
+    const discount = b.discount || 0;
+    const totalRent = productAmount + additionalCharges - discount;
+    return Math.max(0, totalRent);
+  };
+
+  const getDeliveryStatus = (booking: DeliveryRecord) => {
+    const allReturned = booking.productLocks.every(
+      (lock) => lock.returnStatus === "returned"
+    );
+    
+    if (allReturned) return "returned";
+    
+    const anyReady = booking.productLocks.some(
+      (lock) => lock.returnStatus === "ready_to_deliver"
+    );
+    if (anyReady) return "ready_to_deliver";
+    
+    const anyYetToDeliver = booking.productLocks.some(
+      (lock) => lock.returnStatus === "yet_to_deliver"
+    );
+    if (anyYetToDeliver) return "yet_to_deliver";
+    
+    return "not_returned";
+  };
 
   const handleStatusToggle = async (booking: DeliveryRecord) => {
     setUpdatingBookingId(booking.id);
     try {
-      // Check if all are returned
-      const allReturned = booking.productLocks.every(
-        (lock) => lock.returnStatus === "returned"
-      );
-      // If all returned, mark as not_returned, otherwise mark all as returned
-      const newStatus = allReturned ? "not_returned" : "returned";
+      const currentStatus = getDeliveryStatus(booking);
+      let newStatus = "yet_to_deliver";
+      
+      if (currentStatus === "yet_to_deliver") newStatus = "ready_to_deliver";
+      else if (currentStatus === "ready_to_deliver") newStatus = "not_returned";
+      else if (currentStatus === "not_returned") newStatus = "returned";
+      else if (currentStatus === "returned") newStatus = "yet_to_deliver";
 
       for (const lock of booking.productLocks) {
         const formData = new FormData();
@@ -275,7 +305,7 @@ export default function DeliveryPage() {
         });
 
         if (!res.ok) {
-          console.error("Failed to update return status for product", lock.id);
+          console.error("Failed to update delivery status for product", lock.id);
         }
       }
 
@@ -294,7 +324,7 @@ export default function DeliveryPage() {
         )
       );
     } catch (error) {
-      console.error("Error updating return status:", error);
+      console.error("Error updating delivery status:", error);
     } finally {
       setUpdatingBookingId(null);
     }
@@ -394,44 +424,54 @@ export default function DeliveryPage() {
                   return (
                     <React.Fragment key={booking.id}>
                       {(() => {
-                        const allReturned = booking.productLocks.every(
-                          (lock) => lock.returnStatus === "returned"
-                        );
-                        const bgColor = allReturned ? "#28a745" : "transparent";
+                        const status = getDeliveryStatus(booking);
+                        const bgColor = status === "returned" ? "#28a745" : "transparent";
 
                         return (
                           <>
                             <tr style={{ backgroundColor: bgColor }}>
-                              <td style={{ color: allReturned ? "white" : "inherit" }}>{formatUI(getReceivingDate(booking))}</td>
-                              <td style={{ color: allReturned ? "white" : "inherit" }}>{formatUI(getReturnDate(booking))}</td>
-                              <td style={{ color: allReturned ? "white" : "inherit" }}>{booking.customerName}</td>
-                              <td style={{ color: allReturned ? "white" : "inherit" }}>{booking.phoneNumberPrimary}</td>
+                              <td style={{ color: status === "returned" ? "white" : "inherit" }}>{formatUI(getReceivingDate(booking))}</td>
+                              <td style={{ color: status === "returned" ? "white" : "inherit" }}>{formatUI(getReturnDate(booking))}</td>
+                              <td style={{ color: status === "returned" ? "white" : "inherit" }}>{booking.customerName}</td>
+                              <td style={{ color: status === "returned" ? "white" : "inherit" }}>{booking.phoneNumberPrimary}</td>
 
-                              <td style={{ color: allReturned ? "white" : "inherit" }}>₹{booking.advancePayment.toLocaleString()}</td>
-                              <td style={{ color: allReturned ? "white" : "inherit" }}>₹{booking.securityDeposit.toLocaleString()}</td>
-                              <td style={{ color: allReturned ? "white" : "inherit" }}>₹{getRentAfterDiscount(booking).toLocaleString()}</td>
+                              <td style={{ color: status === "returned" ? "white" : "inherit" }}>₹{booking.advancePayment.toLocaleString()}</td>
+                              <td style={{ color: status === "returned" ? "white" : "inherit" }}>₹{booking.securityDeposit.toLocaleString()}</td>
+                              <td style={{ color: status === "returned" ? "white" : "inherit" }}>₹{getRentAfterDiscount(booking).toLocaleString()}</td>
 
-<td style={{ color: allReturned ? "white" : "inherit" }}>₹{(booking.returnAmount ?? 0).toLocaleString()}</td>
-                                <td style={{ color: allReturned ? "white" : "inherit" }}>{booking.notes || "-"}</td>
+<td style={{ color: status === "returned" ? "white" : "inherit" }}>₹{(booking.returnAmount ?? 0).toLocaleString()}</td>
+                                <td style={{ color: status === "returned" ? "white" : "inherit" }}>{booking.notes || "-"}</td>
 
                         <td>
                           {(() => {
-                            const allReturned = booking.productLocks.every(
-                              (lock) => lock.returnStatus === "returned"
-                            );
-                            const returnedCount = booking.productLocks.filter(
-                              (lock) => lock.returnStatus === "returned"
-                            ).length;
-                            const totalProducts = booking.productLocks.length;
+                            const status = getDeliveryStatus(booking);
+                            let bgColor = "#dc3545";
+                            let label = "Not Returned";
+
+                            if (status === "yet_to_deliver") {
+                              bgColor = "#f8f9fa";
+                              label = "Yet to Deliver";
+                            } else if (status === "ready_to_deliver") {
+                              bgColor = "#ffc107";
+                              label = "Ready to Deliver";
+                            } else if (status === "not_returned") {
+                              bgColor = "#dc3545";
+                              label = "Not Returned";
+                            } else if (status === "returned") {
+                              bgColor = "#28a745";
+                              label = "✓ All Returned";
+                            }
+
+                            const textColor = status === "yet_to_deliver" ? "#333" : "white";
 
                             return (
                               <button
                                 onClick={() => handleStatusToggle(booking)}
                                 disabled={updatingBookingId === booking.id}
                                 style={{
-                                  backgroundColor: allReturned ? "#56d373" : "#dc3545",
-                                  color: "white",
-                                  border: "none",
+                                  backgroundColor: bgColor,
+                                  color: textColor,
+                                  border: status === "yet_to_deliver" ? "1px solid #ddd" : "none",
                                   padding: "8px 16px",
                                   borderRadius: "4px",
                                   cursor: updatingBookingId === booking.id ? "not-allowed" : "pointer",
@@ -442,11 +482,7 @@ export default function DeliveryPage() {
                                   opacity: updatingBookingId === booking.id ? 0.6 : 1,
                                 }}
                               >
-                                {updatingBookingId === booking.id
-                                  ? "Updating..."
-                                  : allReturned
-                                  ? "✓ All Returned"
-                                  : " Not Returned"}
+                                {updatingBookingId === booking.id ? "Updating..." : label}
                               </button>
                             );
                           })()}
