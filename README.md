@@ -38,3 +38,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 =======
 # inventory-management
 >>>>>>> a46f1cc2e5ccdde0ab7c8949eba8cd6c144065a5
+"# inventory" 
