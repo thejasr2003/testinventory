@@ -35,10 +35,9 @@ export async function GET(req: NextRequest) {
 
     const locks = await prisma.productLock.findMany({
       where: {
-        booking: {
-          isDeleted: false,
-          createdAt: { gte: fromDate, lte: toDate },
-        },
+        // Filter locks by their returnDate so stats reflect returns
+        returnDate: { gte: fromDate, lte: toDate },
+        booking: { isDeleted: false },
       },
       include: { booking: true, product: true },
     });
@@ -46,9 +45,9 @@ export async function GET(req: NextRequest) {
     const weeklyMap: Record<string, { revenue: number; bookings: Set<string> }> = {};
 
     locks.forEach((l) => {
-      const createdAt = l.booking?.createdAt;
-      if (!createdAt) return;
-      const weekRange = getWeekRange(new Date(createdAt));
+      const rDate = l.returnDate;
+      if (!rDate) return;
+      const weekRange = getWeekRange(new Date(rDate));
       if (!weeklyMap[weekRange]) weeklyMap[weekRange] = { revenue: 0, bookings: new Set() };
       weeklyMap[weekRange].revenue += l.product?.price || 0;
       weeklyMap[weekRange].bookings.add(l.bookingId);
