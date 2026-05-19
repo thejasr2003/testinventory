@@ -223,6 +223,12 @@ export default function HomePage() {
                           ? `Booking ID: ${booking.bookingId}\nProduct: ${selectedProduct?.label || ""}`
                           : undefined
                       }
+                      onClick={() => {
+                        if (booking && booking.bookingId) {
+                          router.push(`/orders/${booking.bookingId}`);
+                        }
+                      }}
+                      style={{ cursor: booking ? 'pointer' : 'default' }}
                     >
                       <div className="date-num">{day}</div>
                       {isDeliveryStart && selectedProduct && (

@@ -202,10 +202,16 @@ export default function ReturnPage() {
           <table className="orders-table">
             <thead>
               <tr>
+                <th>Receiving Date</th>
+                <th>Return Date</th>
                 <th>Customer Name</th>
                 <th>Mobile No.</th>
                 <th>Alternate No.</th>
-                <th>Return Amount</th>
+                <th>Advance Payment</th>
+                <th>Security Deposit</th>
+                <th>Rent</th>
+                <th>Refund</th>
+                <th>Notes</th>
                 <th>Return Mode</th>
               </tr>
             </thead>
@@ -218,22 +224,34 @@ export default function ReturnPage() {
                   );
 
                   const additionalCharges = booking.additionalcharges || 0;
-
+                  const discount = booking.discount || 0;
+                  const advancePayment = booking.advancePayment || 0;
+                  const securityDeposit = booking.totalDeposit || 0;
+                  const rentAmount = Math.max(0, totalProductAmount + additionalCharges - discount);
                   const returnAmount = Math.max(
                     0,
-                    booking.totalDeposit - (totalProductAmount + additionalCharges)
+                    securityDeposit - rentAmount
                   );
 
                   const isExpanded = expandedRows.includes(booking.id);
+
+                  const receivingDate = booking.productLocks[0]?.deliveryDate;
+                  const returnDate = booking.productLocks[0]?.returnDate;
 
                   return (
                     <React.Fragment key={booking.id}>
                       {/* Main Row */}
                       <tr>
+                        <td>{receivingDate ? new Date(receivingDate).toLocaleDateString() : "-"}</td>
+                        <td>{returnDate ? new Date(returnDate).toLocaleDateString() : "-"}</td>
                         <td>{booking.customerName}</td>
                         <td>{booking.phoneNumberPrimary}</td>
                         <td>{booking.phoneNumberSecondary}</td>
+                        <td>₹{advancePayment.toLocaleString()}</td>
+                        <td>₹{securityDeposit.toLocaleString()}</td>
+                        <td>₹{rentAmount.toLocaleString()}</td>
                         <td>₹{returnAmount.toLocaleString()}</td>
+                        <td>{booking.notes || "-"}</td>
                         <td
                           style={{
                             display: "flex",
@@ -273,13 +291,14 @@ export default function ReturnPage() {
                       {/* Expanded Row */}
                       {isExpanded && (
                         <tr>
-                          <td colSpan={6} style={{ background: "#f9fafb" }}>
+                          <td colSpan={11} style={{ background: "#f9fafb" }}>
                             <table className="product-details-table">
                               <thead>
                                 <tr>
                                   <th>Image</th>
                                   <th>SKU</th>
                                   <th>Product Name</th>
+                                  <th>Size</th>
                                   <th>Delivery Date</th>
                                   <th>Return Date</th>
                                   <th>Amount</th>
@@ -301,6 +320,7 @@ export default function ReturnPage() {
                                     </td>
                                     <td>{lock.product.sku}</td>
                                     <td>{lock.product.name}</td>
+                                    <td>{lock.product.size?.join(", ") || "N/A"}</td>
                                     <td>{new Date(lock.deliveryDate).toLocaleDateString()}</td>
                                     <td>{new Date(lock.returnDate).toLocaleDateString()}</td>
                                     <td>₹{lock.product.price.toLocaleString()}</td>
@@ -321,7 +341,7 @@ export default function ReturnPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={6} className="no-data">
+                  <td colSpan={11} className="no-data">
                     No bookings found.
                   </td>
                 </tr>

@@ -11,10 +11,11 @@ import autoTable from "jspdf-autotable";
 interface ProductLock {
   id: string;
   deliveryDate: string;
-  returnDate: string;
+  returnDate: string
   product: {
     id: string;
     name: string;
+    sku: string;
     price: number;
     images: string[];
     size: string[];
@@ -164,10 +165,11 @@ export default function ViewOrderPage() {
 
     autoTable(doc, {
       startY: currentY,
-      head: [["#", "Product Name", "Size", "Del. Date", "Return Date", "Amount"]],
+      head: [["#", "Product Name", "SKU", "Size", "Del. Date", "Return Date", "Amount"]],
       body: order.productLocks.map((lock, i) => [
         i + 1,
         lock.product.name,
+        lock.product.sku,
         lock.product.size?.join(", ") || "N/A",
         new Date(lock.deliveryDate).toLocaleDateString("en-GB"),
         new Date(lock.returnDate).toLocaleDateString("en-GB"),
@@ -182,7 +184,7 @@ export default function ViewOrderPage() {
         halign: "center",
       },
       bodyStyles: { textColor: 0, halign: "center" },
-      columnStyles: { 1: { halign: "left" }, 4: { halign: "right" } },
+      columnStyles: { 1: { halign: "left" }, 6: { halign: "right" } },
     });
 
     currentY = (doc as any).lastAutoTable.finalY + 12;
@@ -390,7 +392,9 @@ export default function ViewOrderPage() {
           <thead>
             <tr>
               <th>#</th>
+              <th>Image</th>
               <th>Product Name</th>
+              <th>SKU</th>
               <th>Size</th>
               <th>Delivery Date</th>
               <th>Return Date</th>
@@ -401,7 +405,19 @@ export default function ViewOrderPage() {
             {order.productLocks.map((lock, index) => (
               <tr key={lock.id}>
                 <td>{index + 1}</td>
+                <td>
+                  {lock.product.images && lock.product.images.length > 0 ? (
+                    <img
+                      src={lock.product.images[0]}
+                      alt={lock.product.name}
+                      style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
+                    />
+                  ) : (
+                    <span>No Image</span>
+                  )}
+                </td>
                 <td>{lock.product.name}</td>
+                <td>{lock.product.sku}</td>
                 <td>{lock.product.size?.join(", ") || "N/A"}</td>
                 <td>{new Date(lock.deliveryDate).toLocaleDateString("en-GB")}</td>
                 <td>{new Date(lock.returnDate).toLocaleDateString("en-GB")}</td>

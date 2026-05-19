@@ -283,6 +283,30 @@ export default function DeliveryPage() {
     return "not_returned";
   };
 
+  const deliveryStatusOptions = [
+    { value: "yet_to_deliver", label: "Yet to Deliver" },
+    { value: "ready_to_deliver", label: "Ready to Deliver" },
+    { value: "not_returned", label: "Not Returned" },
+    { value: "returned", label: "Returned" },
+  ];
+
+  const handleStatusChange = async (booking: DeliveryRecord, newStatus: string) => {
+    const currentStatus = getDeliveryStatus(booking);
+
+    if (currentStatus === "returned" && newStatus === "yet_to_deliver") {
+      setConfirmDialog({
+        show: true,
+        booking,
+        message: "This booking is already returned. Change status back to Yet to Deliver?",
+      });
+      return;
+    }
+
+    if (currentStatus !== newStatus) {
+      await updateStatus(booking, newStatus);
+    }
+  };
+
   const handleStatusToggle = async (booking: DeliveryRecord) => {
     setUpdatingBookingId(booking.id);
     try {
@@ -473,44 +497,43 @@ export default function DeliveryPage() {
                           {(() => {
                             const status = getDeliveryStatus(booking);
                             let bgColor = "#dc3545";
-                            let label = "Not Returned";
+                            let textColor = "white";
 
                             if (status === "yet_to_deliver") {
                               bgColor = "#f8f9fa";
-                              label = "Yet to Deliver";
+                              textColor = "#333";
                             } else if (status === "ready_to_deliver") {
                               bgColor = "#ffc107";
-                              label = "Ready to Deliver";
                             } else if (status === "not_returned") {
                               bgColor = "#dc3545";
-                              label = "Not Returned";
                             } else if (status === "returned") {
                               bgColor = "#28a745";
-                              label = "✓ All Returned";
                             }
 
-                            const textColor = status === "yet_to_deliver" ? "#333" : "white";
-
                             return (
-                              <button
-                                onClick={() => handleStatusToggle(booking)}
+                              <select
+                                value={status}
                                 disabled={updatingBookingId === booking.id}
+                                onChange={(e) => handleStatusChange(booking, e.target.value)}
                                 style={{
+                                  width: "100%",
+                                  padding: "8px 12px",
+                                  borderRadius: "4px",
+                                  border: "1px solid #ccc",
                                   backgroundColor: bgColor,
                                   color: textColor,
-                                  border: status === "yet_to_deliver" ? "1px solid #ddd" : "none",
-                                  padding: "8px 16px",
-                                  borderRadius: "4px",
-                                  cursor: updatingBookingId === booking.id ? "not-allowed" : "pointer",
                                   fontSize: "13px",
                                   fontWeight: "bold",
-                                  width: "100%",
-                                  textAlign: "center",
+                                  cursor: updatingBookingId === booking.id ? "not-allowed" : "pointer",
                                   opacity: updatingBookingId === booking.id ? 0.6 : 1,
                                 }}
                               >
-                                {updatingBookingId === booking.id ? "Updating..." : label}
-                              </button>
+                                {deliveryStatusOptions.map((option) => (
+                                  <option key={option.value} value={option.value}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
                             );
                           })()}
                         </td>
@@ -545,13 +568,14 @@ export default function DeliveryPage() {
 
                       {isExpanded && (
                         <tr>
-                          <td colSpan={10} style={{ padding: 0 }}>
+                          <td colSpan={11} style={{ padding: 0 }}>
                             <table className="product-details-table">
                               <thead>
                                 <tr>
                                   <th>Image</th>
                                   <th>SKU</th>
                                   <th>Product Name</th>
+                                  <th>Size</th>
                                   <th>Delivery Date</th>
                                   <th>Return Date</th>
                                   <th>Amount</th>
@@ -573,6 +597,7 @@ export default function DeliveryPage() {
                                       </td>
                                       <td>{lock.product.sku}</td>
                                       <td>{lock.product.name}</td>
+                                      <td>{lock.product.size?.join(", ") || "N/A"}</td>
                                       <td>{new Date(lock.deliveryDate).toLocaleDateString()}</td>
                                       <td>{new Date(lock.returnDate).toLocaleDateString()}</td>
                                       <td>₹{lock.product.price.toLocaleString()}</td>

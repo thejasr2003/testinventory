@@ -20,7 +20,7 @@ interface ProductCard {
   product: ProductOption | null;
   size: string;
   amount: string;
-  discount: string;
+  finalPrice: string;
   deliveryDate: string;
   returnDate: string;
 }
@@ -29,7 +29,7 @@ export default function CreateBooking() {
   const router = useRouter();
   const [products, setProducts] = useState<ProductOption[]>([]);
   const [productCards, setProductCards] = useState<ProductCard[]>([
-    { id: 1, product: null, size: "", amount: "", discount: "", deliveryDate: "", returnDate: "" },
+    { id: 1, product: null, size: "", amount: "", finalPrice: "", deliveryDate: "", returnDate: "" },
   ]);
   const [securityDeposit, setSecurityDeposit] = useState<number>(0);
   const [advance, setAdvance] = useState<number>(0);
@@ -184,6 +184,7 @@ export default function CreateBooking() {
               product: value,
               size: value.size && value.size.length === 1 ? value.size[0] : "",
               amount: String(value.price || ""),
+              finalPrice: String(value.price || ""),
             };
           }
 
@@ -197,13 +198,13 @@ export default function CreateBooking() {
 
   const handleAddItem = () => {
     const lastCard = productCards[productCards.length - 1];
-    if (!lastCard.product || !lastCard.amount || (!sameDate && (!lastCard.deliveryDate || !lastCard.returnDate))) {
+    if (!lastCard.product || !lastCard.finalPrice || (!sameDate && (!lastCard.deliveryDate || !lastCard.returnDate))) {
       setErrorMessage("⚠️ Please fill all product details before adding another item.");
       return;
     }
     setProductCards((prev) => [
       ...prev,
-      { id: Date.now(), product: null, size: "", amount: "", discount: "", deliveryDate: "", returnDate: "" },
+      { id: Date.now(), product: null, size: "", amount: "", finalPrice: "", deliveryDate: "", returnDate: "" },
     ]);
     setErrorMessage("");
   };
@@ -233,10 +234,14 @@ export default function CreateBooking() {
   }, [sameDate, globalDeliveryDate, globalReturnDate]);
 
   useEffect(() => {
-    const totalDiscounts = productCards.reduce((sum, card) => sum + (parseFloat(card.discount) || 0), 0);
-    const totalProductAmount = productCards.reduce((sum, card) => sum + (parseFloat(card.amount) || 0), 0);
+    const totalDiscounts = productCards.reduce((sum, card) => {
+      const originalPrice = parseFloat(card.amount) || 0;
+      const finalPrice = parseFloat(card.finalPrice) || 0;
+      return sum + Math.max(0, originalPrice - finalPrice);
+    }, 0);
+    const totalFinalPrice = productCards.reduce((sum, card) => sum + (parseFloat(card.finalPrice) || 0), 0);
     const extras = additionalCharges || 0;
-    const baseRent = Math.max(totalProductAmount - totalDiscounts, 0);
+    const baseRent = Math.max(totalFinalPrice, 0);
     const rentWithExtras = baseRent + extras;
     const totalDep = (advance || 0) + (securityDeposit || 0);
     const totalDiscount = totalDiscounts || 0;
@@ -296,14 +301,20 @@ export default function CreateBooking() {
       newErrors.bookingType = "Booking Type is required.";
 
 
-    const firstProduct = productCards[0];
-    if (!firstProduct.product) newErrors.product = "Please select a product.";
+    const invalidProductCard = productCards.some((card) => {
+      if (!card.product || !card.finalPrice) return true;
+      if (sameDate) return false;
+      return !card.deliveryDate || !card.returnDate;
+    });
+
+    if (invalidProductCard) newErrors.product = "Please fill all product details.";
 
     if (sameDate) {
       if (!globalDeliveryDate || !globalReturnDate) {
         newErrors.deliveryDate = "Global Delivery and Return dates are required.";
       }
     } else {
+      const firstProduct = productCards[0];
       if (!firstProduct.deliveryDate) newErrors.deliveryDate = "Delivery date is required.";
       if (!firstProduct.returnDate) newErrors.returnDate = "Return date is required.";
     }
@@ -313,12 +324,17 @@ export default function CreateBooking() {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    const productsData = productCards.map((card) => ({
-      productId: card.product?.value,
-      deliveryDate: sameDate ? globalDeliveryDate : card.deliveryDate,
-      returnDate: sameDate ? globalReturnDate : card.returnDate,
-      discount: card.discount || "0",
-    }));
+    const productsData = productCards.map((card) => {
+      const originalPrice = parseFloat(card.amount) || 0;
+      const finalPrice = parseFloat(card.finalPrice) || 0;
+      const discountAmount = Math.max(0, originalPrice - finalPrice);
+      return {
+        productId: card.product?.value,
+        deliveryDate: sameDate ? globalDeliveryDate : card.deliveryDate,
+        returnDate: sameDate ? globalReturnDate : card.returnDate,
+        discount: String(discountAmount),
+      };
+    });
 
     const notes = (document.querySelector<HTMLTextAreaElement>('textarea[placeholder="Notes"]')?.value || "").trim();
 
@@ -332,7 +348,11 @@ export default function CreateBooking() {
     formData.append("returnAmount", String(returnAmount));
     formData.append("advancePayment", String(advance));
     formData.append("securityDeposit", String(securityDeposit));
-    const totalProductDiscounts = productCards.reduce((sum, card) => sum + (parseFloat(card.discount) || 0), 0);
+    const totalProductDiscounts = productCards.reduce((sum, card) => {
+      const originalPrice = parseFloat(card.amount) || 0;
+      const finalPrice = parseFloat(card.finalPrice) || 0;
+      return sum + Math.max(0, originalPrice - finalPrice);
+    }, 0);
     formData.append("discount", String(totalProductDiscounts));
     formData.append("discountType", "flat");
     formData.append("rentalType", selectedBookingType?.label || "");
@@ -477,13 +497,18 @@ export default function CreateBooking() {
                   />
                 </div>
                 <div className="form-group" style={{ flex: 1 }}>
-                  <label>Discount (₹)</label>
+                  <label>Final Price (₹)</label>
                   <input 
                     type="number"
-                    placeholder="Discount"
-                    value={card.discount === "0" || card.discount === "" ? "" : card.discount}
-                    onChange={(e) => handleChange(card.id, "discount", e.target.value)}
+                    placeholder="Final Price"
+                    value={card.finalPrice === "0" || card.finalPrice === "" ? "" : card.finalPrice}
+                    onChange={(e) => handleChange(card.id, "finalPrice", e.target.value)}
                   />
+                  {card.product && card.finalPrice !== "" && (
+                    <span className="discount-text">
+                      Discount: ₹{Math.max(0, (parseFloat(card.amount) || 0) - (parseFloat(card.finalPrice) || 0)).toFixed(2)}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -570,7 +595,11 @@ export default function CreateBooking() {
           <div className="summary-card">
             <div className="summary-row"><span>A. Total Deposit (a+b)</span><span>₹ {totalDeposit.toFixed(2)}</span></div>
             <div className="summary-row"><span>B. Rent Amount (d)</span><span>₹ {rentAmount.toFixed(2)}</span></div>
-            <div className="summary-row discount-row"><span>C. Total Discount</span><span className="negative">- ₹{productCards.reduce((sum, card) => sum + (parseFloat(card.discount) || 0), 0).toFixed(2)}</span></div>
+            <div className="summary-row discount-row"><span>C. Total Discount</span><span className="negative">- ₹{productCards.reduce((sum, card) => {
+                const originalPrice = parseFloat(card.amount) || 0;
+                const finalPrice = parseFloat(card.finalPrice) || 0;
+                return sum + Math.max(0, originalPrice - finalPrice);
+              }, 0).toFixed(2)}</span></div>
             <div className="summary-row"><span>D. Return Amount(A+C-B)</span><span>₹ {returnAmount.toFixed(2)}</span></div>
           </div>
 
