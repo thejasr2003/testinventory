@@ -388,6 +388,7 @@ export default function ViewOrderPage() {
           <p>{order.phoneNumberPrimary} | {order.phoneNumberSecondary}</p>
         </div>
 
+        <div className="table-responsive">
         <table className="product-table">
           <thead>
             <tr>
@@ -426,6 +427,7 @@ export default function ViewOrderPage() {
             ))}
           </tbody>
         </table>
+        </div>
 
         <div className="footer-section">
           <div className="notes">

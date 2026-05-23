@@ -277,13 +277,16 @@ export default function UpdateBooking() {
   }, [sameDate, globalDeliveryDate, globalReturnDate]);
 
   useEffect(() => {
+    // Compute net rent after discounts and return amount as totalDeposit - netRent
     const totalProductAmount = productCards.reduce((sum, card) => sum + (parseFloat(card.amount) || 0), 0);
-    const totalProductDiscount = productCards.reduce((sum, card) => sum + (parseFloat(card.discount) || 0), 0);
-    const extras = additionalCharges || 0;
+    const totalProductDiscount = productCards.reduce((sum, card) => sum + (Math.abs(parseFloat(card.discount) || 0)), 0);
+    const extras = Number(additionalCharges) || 0;
     const baseRent = Math.max(totalProductAmount, 0);
     const rentWithExtras = baseRent + extras;
-    const totalDep = (advance || 0) + (securityDeposit || 0);
-    const retAmt = Math.max(0, (totalDep + totalProductDiscount) - rentWithExtras);
+    const totalDep = (Number(advance) || 0) + (Number(securityDeposit) || 0);
+
+    const netRent = Math.max(0, rentWithExtras - (totalProductDiscount || 0));
+    const retAmt = Math.max(0, totalDep - netRent);
 
     setRentAmount(rentWithExtras);
     setTotalDeposit(totalDep);

@@ -67,7 +67,6 @@ export default function DeliveryPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
   const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
-  const [confirmDialog, setConfirmDialog] = useState<{ show: boolean; booking: DeliveryRecord | null; message: string }>({ show: false, booking: null, message: "" });
 
   // Pagination (client-side, 10 per page to match Orders page)
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -293,15 +292,6 @@ export default function DeliveryPage() {
   const handleStatusChange = async (booking: DeliveryRecord, newStatus: string) => {
     const currentStatus = getDeliveryStatus(booking);
 
-    if (currentStatus === "returned" && newStatus === "yet_to_deliver") {
-      setConfirmDialog({
-        show: true,
-        booking,
-        message: "This booking is already returned. Change status back to Yet to Deliver?",
-      });
-      return;
-    }
-
     if (currentStatus !== newStatus) {
       await updateStatus(booking, newStatus);
     }
@@ -312,15 +302,11 @@ export default function DeliveryPage() {
     try {
       const currentStatus = getDeliveryStatus(booking);
       let newStatus = "yet_to_deliver";
-      
+
       if (currentStatus === "yet_to_deliver") newStatus = "ready_to_deliver";
       else if (currentStatus === "ready_to_deliver") newStatus = "not_returned";
       else if (currentStatus === "not_returned") newStatus = "returned";
-      else if (currentStatus === "returned") {
-        setConfirmDialog({ show: true, booking, message: "It is going under yet to delivery only. Are you sure?" });
-        setUpdatingBookingId(null);
-        return;
-      }
+      else if (currentStatus === "returned") newStatus = "yet_to_deliver";
 
       await updateStatus(booking, newStatus);
     } catch (error) {
@@ -368,17 +354,6 @@ export default function DeliveryPage() {
     } finally {
       setUpdatingBookingId(null);
     }
-  };
-
-  const handleConfirm = async () => {
-    if (confirmDialog.booking) {
-      await updateStatus(confirmDialog.booking, "yet_to_deliver");
-    }
-    setConfirmDialog({ show: false, booking: null, message: "" });
-  };
-
-  const handleCancel = () => {
-    setConfirmDialog({ show: false, booking: null, message: "" });
   };
 
   return (
@@ -517,6 +492,7 @@ export default function DeliveryPage() {
                                 onChange={(e) => handleStatusChange(booking, e.target.value)}
                                 style={{
                                   width: "100%",
+                                  minWidth: "140px",
                                   padding: "8px 12px",
                                   borderRadius: "4px",
                                   border: "1px solid #ccc",
@@ -635,72 +611,6 @@ export default function DeliveryPage() {
           </button>
         </div>
       )}
-
-      <ConfirmDialog
-        show={confirmDialog.show}
-        message={confirmDialog.message}
-        onConfirm={handleConfirm}
-        onCancel={handleCancel}
-      />
     </div>
   );
 }
-
-const ConfirmDialog = ({ show, message, onConfirm, onCancel }: { show: boolean; message: string; onConfirm: () => void; onCancel: () => void }) => {
-  if (!show) return null;
-
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000,
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '20px',
-        borderRadius: '8px',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        maxWidth: '400px',
-        width: '90%',
-        textAlign: 'center',
-      }}>
-        <p style={{ marginBottom: '20px', fontSize: '16px' }}>{message}</p>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-          <button
-            onClick={onConfirm}
-            style={{
-              backgroundColor: '#28a745',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            Yes
-          </button>
-          <button
-            onClick={onCancel}
-            style={{
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            No
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
