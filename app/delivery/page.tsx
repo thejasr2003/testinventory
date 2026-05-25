@@ -226,10 +226,13 @@ export default function DeliveryPage() {
     if (!filteredData.length) return;
 
     const rows = filteredData.map((b) => {
-      const productAmount = b.productLocks.reduce((sum, lock) => sum + (lock.product?.price || 0), 0);
+      const productAmount = b.productLocks.reduce((sum, lock) => {
+        const unitPrice = lock.product?.price || 0;
+        const discountValue = Math.max(0, Number((lock as any).discount ?? 0));
+        return sum + Math.max(0, unitPrice - discountValue);
+      }, 0);
       const additionalCharges = b.additionalCharges || 0;
-      const discount = b.discount || 0;
-      const rent = Math.max(0, productAmount + additionalCharges - discount);
+      const rent = Math.max(0, productAmount + additionalCharges);
 
       return {
         "Receiving Date": formatUI(getReceivingDate(b)),
@@ -255,10 +258,13 @@ export default function DeliveryPage() {
     );
   };
   const getRentAfterDiscount = (b: DeliveryRecord) => {
-    const productAmount = b.productLocks.reduce((sum, lock) => sum + (lock.product?.price || 0), 0);
+    const productAmount = b.productLocks.reduce((sum, lock) => {
+      const unitPrice = lock.product?.price || 0;
+      const discountValue = Math.max(0, Number((lock as any).discount ?? 0));
+      return sum + Math.max(0, unitPrice - discountValue);
+    }, 0);
     const additionalCharges = b.additionalCharges || 0;
-    const discount = b.discount || 0;
-    const totalRent = productAmount + additionalCharges - discount;
+    const totalRent = productAmount + additionalCharges;
     return Math.max(0, totalRent);
   };
 
@@ -437,15 +443,6 @@ export default function DeliveryPage() {
               {paginatedData.length > 0 ? (
                 paginatedData.map((booking) => {
                   const isExpanded = expandedRows.includes(booking.id);
-
-                  const totalAmount = booking.productLocks.reduce(
-                    (sum, lock) => sum + lock.product.price,
-                    0
-                  );
-
-                  const deposit = booking.securityDeposit;
-                  const remPayment =
-                    totalAmount + deposit - booking.discount - booking.advancePayment;
 
                   return (
                     <React.Fragment key={booking.id}>

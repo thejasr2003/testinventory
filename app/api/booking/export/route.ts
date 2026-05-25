@@ -59,10 +59,11 @@ export async function GET(req: NextRequest) {
     const rows: any[] = [];
 
     bookings.forEach((b) => {
-      const totalAmount = b.productLocks.reduce(
-        (sum, pl) => sum + (pl.product?.price || 0),
-        0
-      );
+      const totalAmount = b.productLocks.reduce((sum, pl) => {
+        const unitPrice = pl.product?.price || 0;
+        const discountValue = Math.max(0, pl.discount || 0);
+        return sum + Math.max(0, unitPrice - discountValue);
+      }, 0);
 
       rows.push({
         invoiceNumber: b.invoiceNumber || "",

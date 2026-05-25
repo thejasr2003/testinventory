@@ -79,17 +79,17 @@ export default function ViewOrderPage() {
       </div>
     );
 
-  const productAmount = order.productLocks.reduce(
-    (sum, lock) => sum + (lock.product?.price || 0),
-    0
-  );
-  const additionalCharges = order.additionalCharges || 0; 
+  const productAmount = order.productLocks.reduce((sum, lock) => {
+    const unitPrice = lock.product?.price || 0;
+    const discountValue = Math.max(0, Number((lock as any).discount ?? 0));
+    return sum + Math.max(0, unitPrice - discountValue);
+  }, 0);
+  const additionalCharges = order.additionalCharges || 0;
   const securityDeposit = order.securityDeposit;
   const discount = order.discount;
   const rentamount = productAmount + additionalCharges;
-  const total = rentamount - discount
-  const remainingPayment = total - order.advancePayment;
-  const returnAmount = Math.max(0, (securityDeposit + (order.advancePayment)) - total);
+  const total = rentamount;
+  const returnAmount = Math.max(0, securityDeposit + order.advancePayment - total);
 
   const loadImageAsDataUrl = (url?: string): Promise<string | null> =>
     new Promise((resolve) => {
@@ -281,13 +281,15 @@ export default function ViewOrderPage() {
       const deliveryDate = new Date(lock.deliveryDate).toLocaleDateString("en-GB");
       const returnDate = new Date(lock.returnDate).toLocaleDateString("en-GB");
       const sizeText = lock.product.size?.join(", ") || "N/A";
+      const lockDiscount = Math.max(0, Number((lock as any).discount ?? 0));
+      const finalPrice = Math.max(0, (lock.product.price || 0) - lockDiscount);
 
       const productNameLines = doc.splitTextToSize(lock.product.name, columnWidths[2] - 6);
       const skuLines = doc.splitTextToSize(lock.product.sku, columnWidths[3] - 6);
       const sizeLines = doc.splitTextToSize(sizeText, columnWidths[4] - 6);
       const dateLines = doc.splitTextToSize(deliveryDate, columnWidths[5] - 6);
       const returnLines = doc.splitTextToSize(returnDate, columnWidths[6] - 6);
-      const amountText = formatCurrency(lock.product.price);
+      const amountText = formatCurrency(finalPrice);
       const rowHeight = Math.max(
         30,
         getCellHeight(productNameLines),
@@ -578,7 +580,7 @@ export default function ViewOrderPage() {
                 <td>{lock.product.size?.join(", ") || "N/A"}</td>
                 <td>{new Date(lock.deliveryDate).toLocaleDateString("en-GB")}</td>
                 <td>{new Date(lock.returnDate).toLocaleDateString("en-GB")}</td>
-                <td>₹{lock.product.price}</td>
+                <td>₹{Math.max(0, (lock.product.price || 0) - Math.max(0, Number((lock as any).discount ?? 0)))}</td>
               </tr>
             ))}
           </tbody>
