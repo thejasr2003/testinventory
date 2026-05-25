@@ -84,6 +84,18 @@
   font-weight: bold;
 }
 
+.invoice-product-image {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 6px;
+  display: block;
+  margin: 0 auto;
+  padding: 2px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+}
+
 .payment-summary {
   display: flex;
   justify-content: space-between;
