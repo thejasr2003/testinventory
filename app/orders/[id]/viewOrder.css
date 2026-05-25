@@ -149,6 +149,17 @@
   font-size: 13px;
 }
 
+.invoice-product-image {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
 .footer-section {
   display: flex;
   justify-content: space-between;

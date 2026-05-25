@@ -6,7 +6,6 @@ import { ArrowLeft, Printer, Copy, Download, MessageCircle, Plus } from "lucide-
 import "./viewOrder.css";
 
 import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
 
 interface ProductLock {
   id: string;
@@ -92,31 +91,73 @@ export default function ViewOrderPage() {
   const remainingPayment = total - order.advancePayment;
   const returnAmount = Math.max(0, (securityDeposit + (order.advancePayment)) - total);
 
-  const generatePDF = () => {
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 15;
-  let currentY = 20;
+  const loadImageAsDataUrl = (url?: string): Promise<string | null> =>
+    new Promise((resolve) => {
+      if (!url) return resolve(null);
 
-  const formatCurrency = (amount: number) =>
-    `Rs.${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+      const image = new Image();
+      image.crossOrigin = "anonymous";
 
-  const logo = new Image();
-    logo.src = "/icons/icon-512x512.png"; // Make sure this exists in /public/icons
+      image.onload = () => {
+        try {
+          const size = 240;
+          const canvas = document.createElement("canvas");
+          canvas.width = size;
+          canvas.height = size;
+          const context = canvas.getContext("2d");
+
+          if (!context) {
+            resolve(null);
+            return;
+          }
+
+          context.fillStyle = "#ffffff";
+          context.fillRect(0, 0, size, size);
+
+          const ratio = Math.min(size / image.naturalWidth, size / image.naturalHeight);
+          const drawWidth = image.naturalWidth * ratio;
+          const drawHeight = image.naturalHeight * ratio;
+          const offsetX = (size - drawWidth) / 2;
+          const offsetY = (size - drawHeight) / 2;
+
+          context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+          resolve(canvas.toDataURL("image/jpeg", 0.98));
+        } catch {
+          resolve(null);
+        }
+      };
+
+      image.onerror = () => resolve(null);
+      image.src = url;
+    });
+
+  const generatePDF = async () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    let currentY = 20;
+
+    const formatCurrency = (amount: number) =>
+      `Rs.${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+
+    const imageDataUrls = await Promise.all(
+      order.productLocks.map((lock) => loadImageAsDataUrl(lock.product.images?.[0]))
+    );
+
+    const logo = new Image();
+    logo.src = "/icons/icon-512x512.png";
 
     const logoSize = 22;
     const logoX = margin;
     const logoY = currentY;
 
-    // ✅ Draw logo
     doc.addImage(logo, "PNG", logoX, logoY, logoSize, logoSize);
 
-    // ✅ Draw circle mask around logo (makes it look circular)
     doc.setDrawColor(200);
     doc.setLineWidth(0.6);
     doc.circle(logoX + logoSize / 2, logoY + logoSize / 2, logoSize / 2, "S");
 
-    // ✅ Text positioned to the right of the logo
     const textX = logoX + logoSize + 5;
     let textY = logoY + 4;
 
@@ -125,7 +166,7 @@ export default function ViewOrderPage() {
 
     doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(80);
     textY += 6;
-    const addressLines = doc.splitTextToSize(organizationInfo.address, 80); // wrap width ~80px
+    const addressLines = doc.splitTextToSize(organizationInfo.address, 80);
 
     doc.text(addressLines[0], textX, textY);
     textY += 6;
@@ -134,9 +175,11 @@ export default function ViewOrderPage() {
       doc.text(addressLines[1], textX, textY);
       textY += 6;
     }
+
     doc.text(`Email: ${organizationInfo.email}`, textX, textY);
     textY += 6;
     doc.text(`Phone: ${organizationInfo.contactNumber}`, textX, textY);
+
     doc.setFont("helvetica", "normal").setFontSize(12).setTextColor(0);
     doc.text(`Invoice #: ${order.invoiceNumber}`, pageWidth - margin, logoY + 4, { align: "right" });
     doc.text(
@@ -150,11 +193,11 @@ export default function ViewOrderPage() {
       { align: "right" }
     );
 
-    currentY = logoY + logoSize + 15; // Move content down cleanly
+    currentY = logoY + logoSize + 15;
 
     const billedBoxHeight = 30;
     doc.setFillColor(245, 245, 245);
-    doc.rect(margin, currentY, pageWidth - 2 * margin, billedBoxHeight, "F"); 
+    doc.rect(margin, currentY, pageWidth - 2 * margin, billedBoxHeight, "F");
     doc.setTextColor(0).setFont("helvetica", "bold").setFontSize(11);
     doc.text("Billed To:", margin + 5, currentY + 8);
     doc.setFont("helvetica", "normal").setFontSize(10);
@@ -163,31 +206,144 @@ export default function ViewOrderPage() {
 
     currentY += billedBoxHeight + 5;
 
-    autoTable(doc, {
-      startY: currentY,
-      head: [["#", "Product Name", "SKU", "Size", "Del. Date", "Return Date", "Amount"]],
-      body: order.productLocks.map((lock, i) => [
-        i + 1,
-        lock.product.name,
-        lock.product.sku,
-        lock.product.size?.join(", ") || "N/A",
-        new Date(lock.deliveryDate).toLocaleDateString("en-GB"),
-        new Date(lock.returnDate).toLocaleDateString("en-GB"),
-        formatCurrency(lock.product.price),
-      ]),
-      theme: "grid",
-      styles: { lineColor: [200, 200, 200], lineWidth: 0.2, fontSize: 10, cellPadding: 3 },
-      headStyles: {
-        fillColor: [245, 245, 245],
-        textColor: 0,
-        fontStyle: "bold",
-        halign: "center",
-      },
-      bodyStyles: { textColor: 0, halign: "center" },
-      columnStyles: { 1: { halign: "left" }, 6: { halign: "right" } },
+    const columnWidths = [12, 24, 38, 22, 18, 24, 24, 18];
+    const columnLabels = ["#", "Image", "Product Name", "SKU", "Size", "Del. Date", "Return Date", "Amount"];
+
+    const drawCell = (
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+      text?: string,
+      align: "left" | "center" | "right" = "left",
+      fontStyle: "normal" | "bold" = "normal",
+      textColor: [number, number, number] = [0, 0, 0],
+      fillColor?: [number, number, number]
+    ) => {
+      if (fillColor) {
+        doc.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
+        doc.rect(x, y, width, height, "F");
+      }
+
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.2);
+      doc.rect(x, y, width, height);
+
+      if (!text) return;
+
+      doc.setFont("helvetica", fontStyle).setFontSize(8.5).setTextColor(textColor[0], textColor[1], textColor[2]);
+      const lines = doc.splitTextToSize(text, width - 6);
+      const textY = y + 6 + (height - lines.length * 5) / 2;
+
+      if (align === "center") {
+        doc.text(lines, x + width / 2, textY, { align: "center" });
+      } else if (align === "right") {
+        doc.text(lines, x + width - 3, textY, { align: "right" });
+      } else {
+        doc.text(lines, x + 3, textY);
+      }
+    };
+
+    const tableYStart = currentY;
+    let tableY = currentY;
+
+    const drawHeader = () => {
+      const headerHeight = 12;
+      const headerX = margin;
+
+      doc.setFillColor(245, 245, 245);
+      doc.rect(headerX, tableY, pageWidth - margin * 2, headerHeight, "F");
+
+      let columnX = headerX;
+      columnLabels.forEach((label, index) => {
+        const align = index === 0 || index === 1 || index === 4 || index === 5 || index === 6 || index === 7 ? "center" : "left";
+        drawCell(columnX, tableY, columnWidths[index], headerHeight, label, align, "bold");
+        columnX += columnWidths[index];
+      });
+
+      tableY += headerHeight;
+    };
+
+    const getCellHeight = (lines: string[]) => Math.max(30, lines.length * 5 + 10);
+
+    const ensurePageSpace = (rowHeight: number) => {
+      if (tableY + rowHeight > pageHeight - 20) {
+        doc.addPage();
+        tableY = 20;
+        drawHeader();
+      }
+    };
+
+    drawHeader();
+
+    order.productLocks.forEach((lock, index) => {
+      const imageData = imageDataUrls[index];
+      const deliveryDate = new Date(lock.deliveryDate).toLocaleDateString("en-GB");
+      const returnDate = new Date(lock.returnDate).toLocaleDateString("en-GB");
+      const sizeText = lock.product.size?.join(", ") || "N/A";
+
+      const productNameLines = doc.splitTextToSize(lock.product.name, columnWidths[2] - 6);
+      const skuLines = doc.splitTextToSize(lock.product.sku, columnWidths[3] - 6);
+      const sizeLines = doc.splitTextToSize(sizeText, columnWidths[4] - 6);
+      const dateLines = doc.splitTextToSize(deliveryDate, columnWidths[5] - 6);
+      const returnLines = doc.splitTextToSize(returnDate, columnWidths[6] - 6);
+      const amountText = formatCurrency(lock.product.price);
+      const rowHeight = Math.max(
+        30,
+        getCellHeight(productNameLines),
+        getCellHeight(skuLines),
+        getCellHeight(sizeLines),
+        getCellHeight(dateLines),
+        getCellHeight(returnLines)
+      );
+
+      ensurePageSpace(rowHeight);
+
+      let columnX = margin;
+      const rowY = tableY;
+
+      doc.setFillColor(255, 255, 255);
+      doc.rect(columnX, rowY, pageWidth - margin * 2, rowHeight, "F");
+
+      drawCell(columnX, rowY, columnWidths[0], rowHeight, String(index + 1), "center", "normal");
+      columnX += columnWidths[0];
+
+      if (imageData) {
+        const imageWidth = 20;
+        const imageHeight = 20;
+        const imageX = columnX + (columnWidths[1] - imageWidth) / 2;
+        const imageY = rowY + (rowHeight - imageHeight) / 2;
+        doc.addImage(imageData, "JPEG", imageX, imageY, imageWidth, imageHeight);
+      }
+      drawCell(columnX, rowY, columnWidths[1], rowHeight, "", "center", "normal");
+      columnX += columnWidths[1];
+
+      drawCell(columnX, rowY, columnWidths[2], rowHeight, lock.product.name, "left", "normal");
+      columnX += columnWidths[2];
+
+      drawCell(columnX, rowY, columnWidths[3], rowHeight, lock.product.sku, "center", "normal");
+      columnX += columnWidths[3];
+
+      drawCell(columnX, rowY, columnWidths[4], rowHeight, sizeText, "center", "normal");
+      columnX += columnWidths[4];
+
+      drawCell(columnX, rowY, columnWidths[5], rowHeight, deliveryDate, "center", "normal");
+      columnX += columnWidths[5];
+
+      drawCell(columnX, rowY, columnWidths[6], rowHeight, returnDate, "center", "normal");
+      columnX += columnWidths[6];
+
+      drawCell(columnX, rowY, columnWidths[7], rowHeight, amountText, "right", "normal");
+
+      tableY += rowHeight;
     });
 
-    currentY = (doc as any).lastAutoTable.finalY + 12;
+    currentY = tableY + 10;
+
+    if (currentY + 90 > pageHeight - 20) {
+      doc.addPage();
+      currentY = 20;
+    }
 
     const boxWidth = 80;
     const boxHeight = 32;
@@ -253,13 +409,12 @@ export default function ViewOrderPage() {
       currentY += (noteText.length * 6) + 14;
     }
 
-      currentY += 5;
+    currentY += 5;
 
-      if (currentY + 80 > doc.internal.pageSize.height - 20) {
-        doc.addPage();
-        currentY = 20;
-}
-
+    if (currentY + 80 > pageHeight - 30) {
+      doc.addPage();
+      currentY = 20;
+    }
 
     const termsList = [
       "1. Extra Day Charge: Rs.250 will be charged per gown or blazer for each extra day.",
@@ -271,8 +426,9 @@ export default function ViewOrderPage() {
     ];
 
     const boxWidthFull = pageWidth - margin * 2;
-    if (currentY + 70 > doc.internal.pageSize.height - 30) {
-      currentY = doc.internal.pageSize.height - 120;
+    if (currentY + 70 > pageHeight - 30) {
+      doc.addPage();
+      currentY = 20;
     }
     doc.setFillColor(255, 249, 234);
     doc.roundedRect(margin, currentY, boxWidthFull, 70, 4, 4, "F");
@@ -300,13 +456,13 @@ export default function ViewOrderPage() {
     return doc;
   };
 
-  const handleDownload = () => {
-    const doc = generatePDF();
+  const handleDownload = async () => {
+    const doc = await generatePDF();
     doc.save(`invoice_${order.invoiceNumber}.pdf`);
   };
 
-  const handlePrint = () => {
-    const doc = generatePDF();
+  const handlePrint = async () => {
+    const doc = await generatePDF();
     const blobUrl = doc.output("bloburl");
     window.open(blobUrl, "_blank");
   };
@@ -411,7 +567,7 @@ export default function ViewOrderPage() {
                     <img
                       src={lock.product.images[0]}
                       alt={lock.product.name}
-                      style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
+                      className="invoice-product-image"
                     />
                   ) : (
                     <span>No Image</span>
