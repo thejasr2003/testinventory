@@ -218,20 +218,17 @@ export default function ReturnPage() {
             <tbody>
               {filteredData.length > 0 ? (
                 filteredData.map((booking) => {
-                  const totalProductAmount = booking.productLocks.reduce(
-                    (sum, lock) => sum + (lock.product?.price || 0),
-                    0
-                  );
+                  const totalProductAmount = booking.productLocks.reduce((sum, lock) => {
+                    const unitPrice = lock.product?.price || 0;
+                    const discountValue = Math.max(0, Number((lock as any).discount ?? 0));
+                    return sum + Math.max(0, unitPrice - discountValue);
+                  }, 0);
 
                   const additionalCharges = booking.additionalcharges || 0;
-                  const discount = booking.discount || 0;
                   const advancePayment = booking.advancePayment || 0;
                   const securityDeposit = booking.totalDeposit || 0;
-                  const rentAmount = Math.max(0, totalProductAmount + additionalCharges - discount);
-                  const returnAmount = Math.max(
-                    0,
-                    securityDeposit - rentAmount
-                  );
+                  const rentAmount = Math.max(0, totalProductAmount + additionalCharges);
+                  const returnAmount = Math.max(0, securityDeposit - rentAmount);
 
                   const isExpanded = expandedRows.includes(booking.id);
 

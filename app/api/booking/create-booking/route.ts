@@ -21,12 +21,9 @@ export async function POST(req: NextRequest) {
     const phoneNumberSecondary = formData.get("phoneNumberSecondary")?.toString() || "";
     const organizationId = formData.get("organizationId")?.toString();
     const notes = formData.get("notes")?.toString() || "";
-    const rentAmount = parseFloat(formData.get("rentAmount")?.toString() || "0");
     const totalDeposit = parseFloat(formData.get("totalDeposit")?.toString() || "0");
     const securityDeposit = parseFloat(formData.get("securityDeposit")?.toString() || "0");
-    const returnAmount = parseFloat(formData.get("returnAmount")?.toString() || "0");
     const advancePayment = parseFloat(formData.get("advancePayment")?.toString() || "0");
-    const discount = parseFloat(formData.get("discount")?.toString() || "0");
     const discountType = formData.get("discountType")?.toString() || "flat";
     const rentalType = formData.get("rentalType")?.toString() || "";
     const advancePaymentMethod = formData.get("advancePaymentMethod")?.toString() || "";
@@ -42,6 +39,28 @@ export async function POST(req: NextRequest) {
     if (!Array.isArray(products) || products.length === 0) {
       return NextResponse.json({ success: false, message: "Products list cannot be empty" }, { status: 400 });
     }
+
+    const productIds = products.map((product: any) => product.productId);
+    const productRecords = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+    });
+
+    const productMap = new Map(productRecords.map((product) => [product.id, product]));
+
+    const discountTotal = products.reduce((sum: number, product: any) => {
+      const lockDiscount = Math.max(0, parseFloat(product.discount || "0") || 0);
+      return sum + lockDiscount;
+    }, 0);
+
+    const finalProductAmount = products.reduce((sum: number, product: any) => {
+      const productRecord = productMap.get(product.productId);
+      const unitPrice = productRecord?.price || 0;
+      const lockDiscount = Math.max(0, parseFloat(product.discount || "0") || 0);
+      return sum + Math.max(0, unitPrice - lockDiscount);
+    }, 0);
+
+    const rentAmount = Math.max(finalProductAmount + additionalCharges, 0);
+    const returnAmount = Math.max(0, totalDeposit - rentAmount);
 
     const overlappingProducts: string[] = [];
 
@@ -112,7 +131,7 @@ export async function POST(req: NextRequest) {
         additionalCharges,
         returnAmount,
         advancePayment,
-        discount,
+        discount: discountTotal,
         discountType,
         rentalType,
         invoiceNumber, 
@@ -122,7 +141,7 @@ export async function POST(req: NextRequest) {
             productId: p.productId,
             deliveryDate: new Date(p.deliveryDate),
             returnDate: new Date(p.returnDate),
-            discount: parseFloat(p.discount || "0"),
+            discount: Math.max(0, parseFloat(p.discount || "0") || 0),
             returnStatus: "yet_to_deliver",
           })),
         },
