@@ -91,13 +91,38 @@ export default function ViewOrderPage() {
   const total = rentamount;
   const returnAmount = Math.max(0, securityDeposit + order.advancePayment - total);
 
-  const loadImageAsDataUrl = (url?: string): Promise<string | null> =>
-    new Promise((resolve) => {
-      if (!url) return resolve(null);
+  const loadImageAsDataUrl = async (url?: string): Promise<string | null> => {
+    if (!url) return null;
 
+    if (url.startsWith("data:")) {
+      return url;
+    }
+
+    try {
+      const response = await fetch(url, { mode: "cors" });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const reader = new FileReader();
+
+      const dataUrl = await new Promise<string | null>((resolve) => {
+        reader.onloadend = () => resolve(typeof reader.result === "string" ? reader.result : null);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+
+      if (dataUrl) {
+        return dataUrl;
+      }
+    } catch {
+      // Fallback below for environments that can still load the image directly.
+    }
+
+    return await new Promise<string | null>((resolve) => {
       const image = new Image();
       image.crossOrigin = "anonymous";
-
       image.onload = () => {
         try {
           const size = 240;
@@ -126,10 +151,10 @@ export default function ViewOrderPage() {
           resolve(null);
         }
       };
-
       image.onerror = () => resolve(null);
       image.src = url;
     });
+  };
 
   const generatePDF = async () => {
     const doc = new jsPDF();

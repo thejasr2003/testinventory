@@ -109,7 +109,9 @@ export default function EReceiptPage() {
           <thead>
             <tr>
               <th>#</th>
+              <th>Image</th>
               <th>Product Name</th>
+              <th>SKU</th>
               <th>Size</th>
               <th>Del. Date</th>
               <th>Return Date</th>
@@ -119,11 +121,24 @@ export default function EReceiptPage() {
           <tbody>
             {order.productLocks.map((lock: any, index: number) => {
               const finalPrice = Math.max(0, (lock.product?.price || 0) - Math.max(0, Number(lock.discount ?? 0)));
+              const productImage = lock.product?.images?.[0];
 
               return (
                 <tr key={lock.id}>
                   <td>{index + 1}</td>
+                  <td>
+                    {productImage ? (
+                      <img
+                        src={productImage}
+                        alt={lock.product.name}
+                        className="invoice-product-image"
+                      />
+                    ) : (
+                      <span>No Image</span>
+                    )}
+                  </td>
                   <td>{lock.product.name}</td>
+                  <td>{lock.product.sku}</td>
                   <td>{lock.product.size?.join(", ") || "N/A"}</td>
                   <td>{new Date(lock.deliveryDate).toLocaleDateString("en-GB")}</td>
                   <td>{new Date(lock.returnDate).toLocaleDateString("en-GB")}</td>
