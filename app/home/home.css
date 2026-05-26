@@ -100,14 +100,14 @@ body, html {
   background-color: #2563eb;
 }
 
-table {
+.calendar table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
   height: 100%;
 }
 
-th {
+.calendar table th {
   text-align: center;
   padding: 10px 0;
   color: #475569;
@@ -117,7 +117,7 @@ th {
   font-size: 15px;
 }
 
-td {
+.calendar table td {
   text-align: left;
   padding: 6px 8px;
   vertical-align: top;
@@ -132,36 +132,36 @@ td {
   transition: background-color 0.2s ease;
 }
 
-td.day:hover {
+.calendar td.day:hover {
   background-color: #e0edff;
   color: #1e3a8a;
   cursor: pointer;
 }
 
-.empty {
+.calendar .empty {
   background-color: #f9fafb;
   color: transparent;
 }
 
-td.booked {
+.calendar table td.booked {
   background-color: #fee2e2 !important;
   color: #b91c1c !important;
   font-weight: 600;
 }
 
-td.booked:hover {
+.calendar td.booked:hover {
   background-color: #fecaca !important;
   color: #7f1d1d !important;
 }
 
 /* Date number and product name styles */
-.date-num {
+.calendar .date-num {
   font-size: 12px;
   font-weight: 500;
   line-height: 1;
 }
 
-.product-name {
+.calendar .product-name {
   font-size: 15px;
   font-weight: 600;
   color: #020816;
@@ -206,22 +206,22 @@ td.booked:hover {
     padding: 4px 8px;
   }
 
-  table th {
+  .calendar table th {
     font-size: 13px;
     padding: 6px 0;
   }
 
-  table td {
+  .calendar table td {
     font-size: 12px;
     height: 70px;
     padding: 4px 6px;
   }
 
-  .date-num {
+  .calendar .date-num {
     font-size: 11px;
   }
 
-  .product-name {
+  .calendar .product-name {
     font-size: 13px;
   }
 }
@@ -240,21 +240,21 @@ td.booked:hover {
     width: 100%;
   }
 
-  table th,
-  table td {
+  .calendar table th,
+  .calendar table td {
     font-size: 11px;
     padding: 3px 4px;
   }
 
-  td {
+  .calendar table td {
     height: 60px;
   }
 
-  .date-num {
+  .calendar .date-num {
     font-size: 10px;
   }
 
-  .product-name {
+  .calendar .product-name {
     font-size: 12px;
   }
 }
@@ -277,13 +277,14 @@ td.booked:hover {
     padding: 4px 8px;
   }
 
-  table {
+  .calendar table {
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
   }
 
-  th, td {
+  .calendar table th,
+  .calendar table td {
     font-size: 11px;
     padding: 3px 2px;
     height: 55px;
@@ -291,11 +292,11 @@ td.booked:hover {
     white-space: normal; 
   }
 
-  .date-num {
+  .calendar .date-num {
     font-size: 10px;
   }
 
-  .product-name {
+  .calendar .product-name {
     font-size: 11px;
   }
 }
@@ -306,21 +307,22 @@ td.booked:hover {
     border-radius: 8px;
   }
 
-  table {
+  .calendar table {
     width: 100%;
   }
 
-  th, td {
+  .calendar table th,
+  .calendar table td {
     font-size: 10px;
     padding: 2px;
     height: 50px;
   }
 
-  .date-num {
+  .calendar .date-num {
     font-size: 9px;
   }
 
-  .product-name {
+  .calendar .product-name {
     font-size: 10px;
   }
 }
@@ -330,7 +332,7 @@ td.booked:hover {
     font-size: 11px;
     white-space: nowrap;
     position: relative;
-    color: transparent;
+    color: transparent; 
   }
 
   .calendar table th:nth-child(1)::before { content: "Sun"; color: #475569; }
