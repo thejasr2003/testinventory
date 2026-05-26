@@ -265,10 +265,11 @@ export default function OrdersPage() {
           <tbody>
             {paginatedOrders.length > 0 ? (
               paginatedOrders.map((o) => {
-                const productAmount = o.productLocks.reduce(
-                  (sum, lock) => sum + lock.product.price,
-                  0
-                );
+                const productAmount = o.productLocks.reduce((sum, lock) => {
+                  const unitPrice = lock.product?.price || 0;
+                  const discountValue = Math.max(0, Number((lock as any).discount ?? 0));
+                  return sum + Math.max(0, unitPrice - discountValue);
+                }, 0);
 
                 // Determine if booking is ongoing or future
                 const now = new Date();

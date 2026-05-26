@@ -50,17 +50,16 @@ export default function EReceiptPage() {
   if (!order || !organizationInfo)
     return <div style={{ textAlign: "center", marginTop: "50px" }}>No booking data found.</div>;
 
-  const productAmount = order.productLocks.reduce(
-    (sum: number, lock: any) => sum + (lock.product?.price || 0),
-    0
-  );
+  const productAmount = order.productLocks.reduce((sum: number, lock: any) => {
+    const unitPrice = lock.product?.price || 0;
+    const discountValue = Math.max(0, Number(lock.discount ?? 0));
+    return sum + Math.max(0, unitPrice - discountValue);
+  }, 0);
 
-
-
-  const TOTAL = productAmount + (order.additionalCharges || 0) 
+  const TOTAL = productAmount + (order.additionalCharges || 0);
 
   const remainingPayment = order.advancePayment + order.securityDeposit;
-  const returnAmount = Math.max(0, remainingPayment - (TOTAL - order.discount));
+  const returnAmount = Math.max(0, remainingPayment - TOTAL);
 
   return (
     <div className="invoice-wrapper">
@@ -110,7 +109,9 @@ export default function EReceiptPage() {
           <thead>
             <tr>
               <th>#</th>
+              <th>Image</th>
               <th>Product Name</th>
+              <th>SKU</th>
               <th>Size</th>
               <th>Del. Date</th>
               <th>Return Date</th>
@@ -118,16 +119,33 @@ export default function EReceiptPage() {
             </tr>
           </thead>
           <tbody>
-            {order.productLocks.map((lock: any, index: number) => (
-              <tr key={lock.id}>
-                <td>{index + 1}</td>
-                <td>{lock.product.name}</td>
-                <td>{lock.product.size?.join(", ") || "N/A"}</td>
-                <td>{new Date(lock.deliveryDate).toLocaleDateString("en-GB")}</td>
-                <td>{new Date(lock.returnDate).toLocaleDateString("en-GB")}</td>
-                <td>Rs.{lock.product.price}</td>
-              </tr>
-            ))}
+            {order.productLocks.map((lock: any, index: number) => {
+              const finalPrice = Math.max(0, (lock.product?.price || 0) - Math.max(0, Number(lock.discount ?? 0)));
+              const productImage = lock.product?.images?.[0];
+
+              return (
+                <tr key={lock.id}>
+                  <td>{index + 1}</td>
+                  <td>
+                    {productImage ? (
+                      <img
+                        src={productImage}
+                        alt={lock.product.name}
+                        className="invoice-product-image"
+                      />
+                    ) : (
+                      <span>No Image</span>
+                    )}
+                  </td>
+                  <td>{lock.product.name}</td>
+                  <td>{lock.product.sku}</td>
+                  <td>{lock.product.size?.join(", ") || "N/A"}</td>
+                  <td>{new Date(lock.deliveryDate).toLocaleDateString("en-GB")}</td>
+                  <td>{new Date(lock.returnDate).toLocaleDateString("en-GB")}</td>
+                  <td>Rs.{finalPrice}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
