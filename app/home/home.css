@@ -326,22 +326,22 @@ td.booked:hover {
 }
 
 @media (max-width: 600px) {
-  th {
+  .calendar table th {
     font-size: 11px;
     white-space: nowrap;
     position: relative;
-    color: transparent; 
+    color: transparent;
   }
 
-  th:nth-child(1)::before { content: "Sun"; color: #475569; }
-  th:nth-child(2)::before { content: "Mon"; color: #475569; }
-  th:nth-child(3)::before { content: "Tue"; color: #475569; }
-  th:nth-child(4)::before { content: "Wed"; color: #475569; }
-  th:nth-child(5)::before { content: "Thu"; color: #475569; }
-  th:nth-child(6)::before { content: "Fri"; color: #475569; }
-  th:nth-child(7)::before { content: "Sat"; color: #475569; }
+  .calendar table th:nth-child(1)::before { content: "Sun"; color: #475569; }
+  .calendar table th:nth-child(2)::before { content: "Mon"; color: #475569; }
+  .calendar table th:nth-child(3)::before { content: "Tue"; color: #475569; }
+  .calendar table th:nth-child(4)::before { content: "Wed"; color: #475569; }
+  .calendar table th:nth-child(5)::before { content: "Thu"; color: #475569; }
+  .calendar table th:nth-child(6)::before { content: "Fri"; color: #475569; }
+  .calendar table th:nth-child(7)::before { content: "Sat"; color: #475569; }
 
-  table th {
+  .calendar table th {
     padding: 4px 0;
     font-weight: 600;
   }
